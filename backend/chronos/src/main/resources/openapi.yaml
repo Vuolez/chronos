@@ -1,0 +1,731 @@
+openapi: 3.0.3
+info:
+  title: Chronos API
+  description: API для планирования встреч с возможностью выбора удобных дат
+  version: 1.0.0
+  contact:
+    name: Chronos Team
+    
+servers:
+  - url: http://localhost:8080/api
+    description: Локальный сервер разработки
+
+tags:
+  - name: auth
+    description: Авторизация и аутентификация
+  - name: meetings
+    description: Управление встречами
+  - name: participants
+    description: Управление участниками встреч
+  - name: availability
+    description: Управление доступностью участников
+
+paths:
+  # ============================================
+  # АВТОРИЗАЦИЯ
+  # ============================================
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Войти в систему через Яндекс
+      description: |
+        Авторизация пользователя через токен Yandex OAuth.
+        Возвращает JWT токен для доступа к защищенным endpoints.
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Успешная авторизация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Невалидный токен Яндекса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /auth/me:
+    get:
+      tags:
+        - auth
+      summary: Получить информацию о текущем пользователе
+      description: |
+        Возвращает информацию о текущем авторизованном пользователе.
+        Требует JWT токен в заголовке Authorization.
+      operationId: getCurrentUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Информация о пользователе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Токен недействителен
+
+  /auth/logout:
+    post:
+      tags:
+        - auth
+      summary: Выйти из системы
+      description: |
+        Выход из системы. Для JWT токенов это операция на стороне клиента
+        (удаление токена из хранилища).
+      operationId: logoutUser
+      responses:
+        '200':
+          description: Успешный выход
+
+  # ============================================
+  # ВСТРЕЧИ
+  # ============================================
+  /meetings:
+    post:
+      tags:
+        - meetings
+      summary: Создать новую встречу
+      description: |
+        Создает новую встречу с указанным названием и описанием.
+        Авторизованный пользователь автоматически становится создателем встречи.
+      operationId: createMeeting
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMeetingRequest'
+      responses:
+        '201':
+          description: Встреча успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeetingResponse'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Токен недействителен
+
+  /meetings/{meetingId}:
+    get:
+      tags:
+        - meetings
+      summary: Получить встречу по ID
+      description: Возвращает детальную информацию о встрече включая участников и доступности
+      operationId: getMeetingById
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Информация о встрече
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeetingDetailResponse'
+        '404':
+          description: Встреча не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /meetings/by-token/{shareToken}:
+    get:
+      tags:
+        - meetings
+      summary: Получить встречу по share token
+      description: Возвращает детальную информацию о встрече по публичному токену
+      operationId: getMeetingByShareToken
+      parameters:
+        - name: shareToken
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 12
+            maxLength: 12
+      responses:
+        '200':
+          description: Информация о встрече
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeetingDetailResponse'
+        '404':
+          description: Встреча не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /meetings/{meetingId}/participants:
+    post:
+      tags:
+        - participants
+      summary: Добавить участника к встрече
+      description: |
+        Добавляет нового участника к существующей встрече.
+        
+        **Поведение авторизации:**
+        - Если пользователь авторизован - участник связывается с пользователем
+        - Если пользователь не авторизован - участник создается как гость
+        - Авторизованный пользователь может добавить только себя (по email)
+      operationId: addParticipant
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddParticipantRequest'
+      responses:
+        '201':
+          description: Участник успешно добавлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParticipantResponse'
+        '400':
+          description: Ошибка валидации или участник уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Авторизованный пользователь пытается добавить участника с чужим email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Встреча не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+    get:
+      tags:
+        - participants
+      summary: Получить всех участников встречи
+      description: Возвращает список всех участников указанной встречи
+      operationId: getParticipantsByMeetingId
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Список участников
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ParticipantResponse'
+        '404':
+          description: Встреча не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /meetings/{meetingId}/participants/{participantId}/availability:
+    put:
+      tags:
+        - availability
+      summary: Обновить доступность участника
+      description: |
+        Обновляет доступность участника для конкретной даты.
+        
+        **Правила авторизации:**
+        - Авторизованный пользователь может обновлять только свою доступность
+        - Для гостей (неавторизованных) - проверка по participantId из URL
+      operationId: updateParticipantAvailability
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: participantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAvailabilityRequest'
+      responses:
+        '200':
+          description: Доступность успешно обновлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailabilityResponse'
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '403':
+          description: Пользователь пытается изменить чужую доступность
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Встреча или участник не найдены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /meetings/{meetingId}/availability:
+    get:
+      tags:
+        - availability
+      summary: Получить всю доступность для встречи
+      description: Возвращает всю доступность всех участников встречи
+      operationId: getAvailabilityByMeetingId
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Доступность участников
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailabilityResponse'
+        '404':
+          description: Встреча не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /meetings/{meetingId}/participation:
+    get:
+      tags:
+        - meetings
+      summary: Проверить участие пользователя во встрече
+      description: |
+        Проверяет является ли текущий авторизованный пользователь участником встречи.
+        Возвращает информацию об участии и детали участника если найден.
+      operationId: checkUserParticipation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Информация об участии
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParticipationInfo'
+        '401':
+          description: Не авторизован
+        '404':
+          description: Встреча не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+  /meetings/{meetingId}/common-dates:
+    get:
+      tags:
+        - availability
+      summary: Получить общие доступные даты
+      description: Возвращает даты, которые подходят всем участникам встречи
+      operationId: getCommonAvailableDates
+      parameters:
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Общие доступные даты
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                  format: date
+        '404':
+          description: Встреча не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+components:
+  # ============================================
+  # БЕЗОПАСНОСТЬ
+  # ============================================
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT токен полученный через /auth/login.
+        Формат: Bearer <JWT_TOKEN>
+
+  schemas:
+    # ============================================
+    # АВТОРИЗАЦИЯ - REQUEST/RESPONSE DTOs
+    # ============================================
+    LoginRequest:
+      type: object
+      required:
+        - yandexToken
+      properties:
+        yandexToken:
+          type: string
+          minLength: 1
+          description: Токен авторизации от Yandex OAuth
+          example: "test-token"
+
+    LoginResponse:
+      type: object
+      required:
+        - token
+        - user
+      properties:
+        token:
+          type: string
+          description: JWT токен для авторизации в API
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        user:
+          $ref: '#/components/schemas/UserInfo'
+
+    UserInfo:
+      type: object
+      required:
+        - id
+        - email
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор пользователя
+          example: "b08774b1-097b-4d64-8448-1a05b4d49ffb"
+        email:
+          type: string
+          format: email
+          description: Email пользователя от Яндекса
+          example: "test@yandex.ru"
+        name:
+          type: string
+          description: Имя пользователя
+          example: "Тестовый Пользователь"
+        avatarUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: URL аватара пользователя
+          example: "https://avatars.yandex.net/get-yapic/12345/islands-200"
+
+    # ============================================
+    # ВСТРЕЧИ - REQUEST/RESPONSE DTOs
+    # ============================================
+    CreateMeetingRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Название встречи
+          example: "Команда планирование"
+        description:
+          type: string
+          maxLength: 1000
+          description: Описание встречи
+          example: "Обсуждение планов на следующий спринт"
+
+    AddParticipantRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Имя участника
+          example: "Иван Иванов"
+        email:
+          type: string
+          format: email
+          description: |
+            Email участника (опционально).
+            Если указан и пользователь авторизован, email должен совпадать с email пользователя.
+            Если указан и пользователь не авторизован, создается гость с этим email.
+          example: "ivan@example.com"
+
+    UpdateAvailabilityRequest:
+      type: object
+      required:
+        - date
+      properties:
+        date:
+          type: string
+          format: date
+          description: Дата доступности
+          example: "2024-03-15"
+        timeFrom:
+          type: string
+          format: time
+          description: Время начала доступности
+          example: "09:00:00"
+        timeTo:
+          type: string
+          format: time
+          description: Время окончания доступности
+          example: "17:00:00"
+
+    MeetingResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор встречи
+        title:
+          type: string
+          description: Название встречи
+        description:
+          type: string
+          nullable: true
+          description: Описание встречи
+        shareToken:
+          type: string
+          description: Публичный токен для доступа к встрече
+        status:
+          $ref: '#/components/schemas/MeetingStatus'
+        finalDate:
+          type: string
+          format: date
+          nullable: true
+          description: Финальная выбранная дата
+        finalTime:
+          type: string
+          format: time
+          nullable: true
+          description: Финальное выбранное время
+        createdBy:
+          $ref: '#/components/schemas/UserInfo'
+          description: Пользователь, создавший встречу
+        createdAt:
+          type: string
+          format: date-time
+          description: Дата создания
+        updatedAt:
+          type: string
+          format: date-time
+          description: Дата последнего обновления
+
+    ParticipantResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор участника
+        meetingId:
+          type: string
+          format: uuid
+          description: Идентификатор встречи
+        name:
+          type: string
+          description: Имя участника
+        email:
+          type: string
+          format: email
+          nullable: true
+          description: Email участника (если указан)
+        status:
+          $ref: '#/components/schemas/ParticipantStatus'
+        user:
+          $ref: '#/components/schemas/UserInfo'
+          nullable: true
+          description: Информация о пользователе (если участник авторизован)
+        isAuthenticated:
+          type: boolean
+          description: Является ли участник авторизованным пользователем
+        joinedAt:
+          type: string
+          format: date-time
+          description: Дата присоединения к встрече
+
+    AvailabilityResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор доступности
+        participantId:
+          type: string
+          format: uuid
+          description: Идентификатор участника
+        meetingId:
+          type: string
+          format: uuid
+          description: Идентификатор встречи
+        date:
+          type: string
+          format: date
+          description: Дата доступности
+        timeFrom:
+          type: string
+          format: time
+          nullable: true
+          description: Время начала доступности
+        timeTo:
+          type: string
+          format: time
+          nullable: true
+          description: Время окончания доступности
+        createdAt:
+          type: string
+          format: date-time
+          description: Дата создания записи
+
+    MeetingDetailResponse:
+      type: object
+      properties:
+        meeting:
+          $ref: '#/components/schemas/MeetingResponse'
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParticipantResponse'
+        availabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvailabilityResponse'
+        commonAvailableDates:
+          type: array
+          items:
+            type: string
+            format: date
+
+    MeetingStatus:
+      type: string
+      enum:
+        - PLANNING
+        - VOTING
+        - COMPLETED
+        - CANCELED
+      description: |
+        Статус встречи:
+        * PLANNING - В процессе планирования
+        * VOTING - Голосование за финальную дату
+        * COMPLETED - Завершена
+        * CANCELED - Отменена
+
+    ParticipantStatus:
+      type: string
+      enum:
+        - THINKING
+        - VOTED
+      description: |
+        Статус участника:
+        * THINKING - Думает над доступностью
+        * VOTED - Проголосовал (указал доступность)
+
+    ParticipationInfo:
+      type: object
+      required:
+        - isParticipant
+      properties:
+        isParticipant:
+          type: boolean
+          description: Является ли пользователь участником встречи
+        participant:
+          $ref: '#/components/schemas/ParticipantResponse'
+          nullable: true
+          description: Информация об участнике (если является участником)
+
+    ApiErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Сообщение об ошибке
+        details:
+          type: string
+          nullable: true
+          description: Дополнительные детали ошибки
+        timestamp:
+          type: string
+          format: date-time
+          description: Время возникновения ошибки
+        path:
+          type: string
+          nullable: true
+          description: Путь запроса, где произошла ошибка

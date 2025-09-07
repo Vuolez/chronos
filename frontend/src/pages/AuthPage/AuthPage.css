@@ -1,0 +1,89 @@
+.auth-page {
+  min-height: 100vh;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.auth-container {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+
+.auth-container h1 {
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.auth-container p {
+  margin: 0 0 32px 0;
+  color: #666;
+  font-size: 1rem;
+}
+
+/* Убираем старый контейнер */
+#ya-auth-container {
+  display: none;
+}
+
+/* Стили для сообщений об ошибках */
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 12px;
+  margin: 16px 0;
+  font-size: 0.9rem;
+} 
+
+.yandex-icon {
+  flex-shrink: 0;
+}
+
+
+/* Кастомная кнопка Яндекс авторизации */
+.yandex-auth-btn {
+  background: #ffdb4d;
+  border: 1px solid #d4c000;
+  border-radius: 8px;
+  padding: 12px 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  width: 100%;
+  max-width: 280px;
+  margin: 20px auto 0 auto;
+  display: block;
+}
+
+.yandex-auth-btn:hover {
+  background: #ffcc02;
+  border-color: #b8a000;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.yandex-auth-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.yandex-btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #333;
+}

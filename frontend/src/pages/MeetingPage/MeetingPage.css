@@ -1,0 +1,378 @@
+/* Стили для страницы планирования встречи */
+
+.meeting-page {
+  min-height: 100vh;
+  background: #f8f9ff;
+  padding: 20px;
+}
+
+/* Заголовок страницы */
+.meeting-header {
+  max-width: 1400px;
+  margin: 0 auto 24px auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.meeting-header h1 {
+  color: #333;
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.back-btn {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.back-btn:hover {
+  background: #5a6fd8;
+  transform: translateY(-1px);
+}
+
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.selected-count {
+  background: #e8f0fe;
+  color: #667eea;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.share-token {
+  background: #f0f9ff;
+  color: #0369a1;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: monospace;
+}
+
+.auto-refresh-indicator {
+  background: #f0fdf4;
+  color: #15803d;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Основной контент */
+.meeting-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Панели */
+.participants-panel {
+  min-width: 0; /* Предотвращает переполнение */
+}
+
+.calendar-panel {
+  min-width: 0; /* Предотвращает переполнение */
+}
+
+/* Форма создания встречи */
+.create-meeting-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.form-content {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+  width: calc(100% - 40px);
+}
+
+.form-content h2 {
+  margin: 0 0 24px 0;
+  color: #333;
+  text-align: center;
+}
+
+.title-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e5e5e5;
+  border-radius: 8px;
+  font-size: 1rem;
+  margin-bottom: 24px;
+  transition: border-color 0.2s ease;
+}
+
+.title-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.create-btn, .cancel-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.create-btn {
+  background: #667eea;
+  color: white;
+  border: none;
+}
+
+.create-btn:hover:not(:disabled) {
+  background: #5a6fd8;
+}
+
+.create-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.cancel-btn:hover:not(:disabled) {
+  background: #e8e8e8;
+}
+
+.cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Баннеры */
+.error-banner, .loading-banner {
+  max-width: 1400px;
+  margin: 0 auto 20px auto;
+  padding: 12px 20px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 500;
+}
+
+.error-banner {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.error-banner button {
+  background: none;
+  border: none;
+  color: #991b1b;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.error-banner button:hover {
+  background: #fecaca;
+}
+
+.loading-banner {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #dbeafe;
+  justify-content: center;
+}
+
+/* Информация о выбранных датах */
+.selected-dates-info {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.selected-dates-info h3 {
+  margin: 0 0 16px 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.dates-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.selected-date {
+  background: #667eea;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+/* Стили для общих дат */
+.common-dates-info {
+  background: #f0f9ff;
+  border: 2px solid #0ea5e9;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.common-dates-info h3 {
+  margin: 0 0 16px 0;
+  color: #0c4a6e;
+  font-size: 1.2rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.common-date {
+  background: #0ea5e9;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 25px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  box-shadow: 0 2px 4px rgba(14, 165, 233, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.common-date:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(14, 165, 233, 0.4);
+}
+
+.common-dates-description {
+  margin: 16px 0 0 0;
+  color: #0c4a6e;
+  font-size: 0.9rem;
+  font-style: italic;
+  text-align: center;
+}
+
+/* Блок отсутствия общих дат */
+.no-common-dates {
+  background: #fef3c7;
+  border: 2px solid #f59e0b;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.no-common-dates h3 {
+  margin: 0 0 12px 0;
+  color: #92400e;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.no-common-dates p {
+  margin: 0;
+  color: #92400e;
+  font-size: 0.9rem;
+}
+
+/* Адаптивность для планшетов */
+@media (max-width: 1024px) {
+  .meeting-content {
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+  }
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+  .meeting-page {
+    padding: 16px;
+  }
+  
+  .meeting-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .meeting-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .meeting-content {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .participants-panel {
+    order: 2; /* На мобильных календарь сверху */
+  }
+  
+  .calendar-panel {
+    order: 1;
+  }
+  
+  .selected-dates-info {
+    margin-top: 16px;
+  }
+  
+  /* Адаптивность для формы создания встречи */
+  .form-content {
+    width: calc(100% - 20px);
+    padding: 20px;
+    max-width: none;
+  }
+}

@@ -1,0 +1,396 @@
+/* Стили для главной страницы */
+
+.home-page {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #f8f9ff;
+  padding: 20px;
+}
+
+.home-content {
+  text-align: center;
+  color: #333;
+  max-width: 900px;
+  width: 100%;
+}
+
+.app-title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.app-subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 3rem;
+  opacity: 0.9;
+  font-weight: 300;
+}
+
+.create-meeting-btn {
+  background: #667eea;
+  border: none;
+  color: white;
+  padding: 16px 32px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.create-meeting-btn:hover {
+  background: #5a6fd8;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.create-meeting-btn:active {
+  transform: translateY(0);
+}
+
+/* Кнопка выхода */
+.logout-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  color: #666;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  background: #e8e8e8;
+  transform: translateY(-1px);
+}
+
+.logout-btn:active {
+  transform: translateY(0);
+}
+
+/* Приветствие пользователя */
+.user-welcome {
+  margin-bottom: 30px;
+}
+
+.user-welcome .app-title {
+  font-size: 2.8rem;
+  margin-bottom: 8px;
+}
+
+.user-email {
+  font-size: 1rem;
+  opacity: 0.8;
+  margin: 0;
+  font-weight: 300;
+  color: #666;
+}
+
+.main-content h2 {
+  font-size: 2rem;
+  margin: 20px 0 10px 0;
+  font-weight: 500;
+}
+
+/* Форма создания встречи */
+.create-meeting-form {
+  background: white;
+  border: none;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  max-width: 800px;
+  width: calc(100% - 40px);
+  min-height: 500px !important;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.create-meeting-form h3 {
+  text-align: center;
+  margin: 0 0 25px 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e5e5;
+  border-radius: 8px;
+  background: white;
+  color: #333;
+  font-size: 1rem;
+  box-sizing: border-box;
+  min-width: 700px !important;
+  transition: border-color 0.2s ease;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #999;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.form-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.cancel-btn,
+.submit-btn {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn {
+  background: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.cancel-btn:hover:not(:disabled) {
+  background: #e8e8e8;
+}
+
+.submit-btn {
+  background: #667eea;
+  color: white;
+  border: none;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: #5a6fd8;
+  transform: translateY(-1px);
+}
+
+.submit-btn:disabled,
+.cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+  .app-title {
+    font-size: 2.5rem;
+  }
+  
+  .app-subtitle {
+    font-size: 1rem;
+  }
+  
+  .create-meeting-btn {
+    padding: 14px 28px;
+    font-size: 1rem;
+  }
+  
+  .logout-btn {
+    top: 15px;
+    right: 15px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+
+  .create-meeting-form {
+    padding: 20px;
+    max-width: 350px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+/* Результат создания встречи */
+.meeting-created {
+  background: linear-gradient(135deg, #e8f5e8, #f0f8ff);
+  border-radius: 12px;
+  padding: 30px;
+  margin-top: 30px;
+  border: 2px solid #4caf50;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.1);
+}
+
+.meeting-created h3 {
+  color: #2e7d32;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.meeting-info {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 25px;
+  border-left: 4px solid #4caf50;
+}
+
+.meeting-info h4 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 1.3rem;
+}
+
+.meeting-info .description {
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.meeting-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.go-to-calendar-btn {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  color: white;
+  border: none;
+  padding: 15px 25px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.go-to-calendar-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.invite-section {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #e0e0e0;
+}
+
+.invite-section p {
+  margin-bottom: 15px;
+  color: #333;
+  font-weight: 500;
+}
+
+.invite-link {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.invite-url {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 0.9rem;
+  background: #f9f9f9;
+  color: #333;
+}
+
+.copy-btn {
+  background: #2196f3;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.3s ease;
+  white-space: nowrap;
+}
+
+.copy-btn:hover {
+  background: #1976d2;
+}
+
+.create-another-btn {
+  background: #95a5a6;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  align-self: center;
+}
+
+.create-another-btn:hover {
+  background: #7f8c8d;
+  transform: translateY(-1px);
+}
+
+/* Дополнительная адаптивность для новых элементов */
+@media (max-width: 768px) {
+  .meeting-created {
+    padding: 20px;
+    margin-top: 20px;
+  }
+  
+  .invite-link {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .invite-url,
+  .copy-btn,
+  .go-to-calendar-btn {
+    width: 100%;
+  }
+  
+  /* Адаптивность для формы создания встречи и контейнера */
+  .home-content {
+    max-width: none;
+    padding: 0 10px;
+  }
+  
+  .create-meeting-form {
+    width: calc(100% - 20px);
+    padding: 20px;
+  }
+}

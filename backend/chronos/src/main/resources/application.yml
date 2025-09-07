@@ -1,0 +1,65 @@
+spring:
+  application:
+    name: chronos
+  
+  profiles:
+    active: local
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/chronos
+    username: chronos_user
+    password: chronos_password
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    defer-datasource-initialization: false
+  
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+  
+  # CORS конфигурация теперь в CorsConfig.kt
+  # web:
+  #   cors:
+  #     allowed-origins: 
+  #       - "http://localhost:3000"
+  #       - "http://localhost:5173"
+  #     allowed-methods: "*"
+  #     allowed-headers: "*"
+  #     allow-credentials: true
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+logging:
+  level:
+    com.chronos: DEBUG
+    org.springframework.web: DEBUG
+    liquibase: INFO
+    reactor.netty: DEBUG
+    io.netty: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Настройки сети для WebClient
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+# JWT конфигурация
+jwt:
+  secret: "chronos-super-secret-key-change-in-production-please-make-it-longer-than-256-bits"
+  expiration: 86400000  # 24 часа в миллисекундах
