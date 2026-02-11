@@ -17,8 +17,9 @@ import {
   ApiErrorResponse 
 } from '../types';
 
-// Настройка базового URL (ваш бэкенд)
-const API_BASE_URL = 'http://localhost:8080/api';
+// Настройка базового URL: в проде — тот же хост (/api проксируется nginx), в dev — localhost:8080
+const API_BASE_URL =
+  process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8080/api';
 
 // Создаем экземпляр axios с базовой конфигурацией
 const apiClient = axios.create({

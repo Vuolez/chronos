@@ -11,7 +11,7 @@ const AuthPage: React.FC = () => {
   // Прямая авторизация через Яндекс OAuth
   const handleYandexAuth = () => {
     const clientId = '3f41d27790434692b7f6a36bf3d4ad41';
-    const redirectUri = encodeURIComponent('http://localhost:3000/auth/callback');
+    const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
     const responseType = 'token';
     
     // Строим URL для авторизации (пока без scope)
