@@ -124,6 +124,35 @@ class MeetingController(
             .avatarUrl(user.avatarUrl?.let { java.net.URI.create(it) })
     }
     
+    /**
+     * Получение списка встреч текущего пользователя
+     */
+    @GetMapping("/meetings/my")
+    fun getMyMeetings(): ResponseEntity<List<MeetingResponse>> {
+        val currentUser = SecurityUtils.getCurrentUser()
+            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        
+        val meetings = meetingService.getMeetingsForUser(currentUser.id)
+        val response = meetings.map { convertToMeetingResponse(it) }
+        return ResponseEntity.ok(response)
+    }
+    
+    /**
+     * Выход текущего пользователя из встречи
+     */
+    @PostMapping("/meetings/{meetingId}/leave")
+    fun leaveMeeting(@PathVariable meetingId: UUID): ResponseEntity<Void> {
+        val currentUser = SecurityUtils.getCurrentUser()
+            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+        
+        val success = participantService.leaveMeeting(meetingId, currentUser.id)
+        return if (success) {
+            ResponseEntity.ok().build()
+        } else {
+            ResponseEntity.notFound().build()
+        }
+    }
+    
     override fun checkUserParticipation(meetingId: UUID): ResponseEntity<ParticipationInfo> {
         val currentUser = SecurityUtils.getCurrentUser()
             ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()

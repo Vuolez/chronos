@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import MeetingPage from './pages/MeetingPage';
+import MyMeetingsPage from './pages/MyMeetingsPage';
 import InvitePage from './pages/InvitePage';
 import MeetingRouter from './components/MeetingRouter';
 import AuthPage from './pages/AuthPage';
@@ -61,6 +62,12 @@ function App() {
           
           {/* Callback от Яндекс OAuth */}
           <Route path="/auth/callback" element={<AuthCallback />} />
+          
+          {/* Мои встречи - только для авторизованных */}
+          <Route 
+            path="/my-meetings" 
+            element={isAuthenticated ? <MyMeetingsPage /> : <Navigate to="/auth" replace />} 
+          />
           
           {/* Страница создания встречи - только для авторизованных */}
           <Route 

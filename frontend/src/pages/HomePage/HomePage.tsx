@@ -122,12 +122,20 @@ const HomePage: React.FC = () => {
           <p className="app-subtitle">Планирование встреч стало проще</p>
           
           {!showCreateForm ? (
-            <button 
-              className="create-meeting-btn"
-              onClick={handleShowCreateForm}
-            >
-              Запланировать новую встречу
-            </button>
+            <div className="home-buttons">
+              <button 
+                className="create-meeting-btn"
+                onClick={handleShowCreateForm}
+              >
+                Запланировать новую встречу
+              </button>
+              <button 
+                className="my-meetings-btn"
+                onClick={() => navigate('/my-meetings')}
+              >
+                Мои встречи
+              </button>
+            </div>
           ) : (
             <div className="create-meeting-form">
               <form onSubmit={handleCreateMeeting}>

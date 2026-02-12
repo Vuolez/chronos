@@ -189,6 +189,17 @@ export const meetingApi = {
   async getCommonDates(meetingId: string): Promise<string[]> {
     const response = await apiClient.get<string[]>(`/meetings/${meetingId}/common-dates`);
     return response.data;
+  },
+
+  // Получить все встречи текущего пользователя
+  async getMyMeetings(): Promise<Meeting[]> {
+    const response = await apiClient.get<Meeting[]>('/meetings/my');
+    return response.data;
+  },
+
+  // Выйти из встречи
+  async leaveMeeting(meetingId: string): Promise<void> {
+    await apiClient.post(`/meetings/${meetingId}/leave`);
   }
 };
 

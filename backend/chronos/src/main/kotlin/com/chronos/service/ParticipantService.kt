@@ -3,6 +3,8 @@ package com.chronos.service
 import com.chronos.entity.Participant
 import com.chronos.entity.ParticipantStatus
 import com.chronos.entity.User
+import com.chronos.repository.AvailabilityRepository
+import com.chronos.repository.MeetingRepository
 import com.chronos.repository.ParticipantRepository
 import com.chronos.repository.UserRepository
 import org.springframework.stereotype.Service
@@ -14,7 +16,9 @@ import java.util.*
 class ParticipantService(
     private val participantRepository: ParticipantRepository,
     private val meetingService: MeetingService,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val availabilityRepository: AvailabilityRepository,
+    private val meetingRepository: MeetingRepository
 ) {
     
     /**
@@ -120,5 +124,32 @@ class ParticipantService(
         
         // Авторизованный пользователь может изменять только своих участников
         return participant.userId == currentUser.id
+    }
+    
+    /**
+     * Выход пользователя из встречи
+     * Удаляет участника и его доступности.
+     * Если это был последний участник — удаляет встречу целиком.
+     */
+    fun leaveMeeting(meetingId: UUID, userId: UUID): Boolean {
+        val participant = participantRepository.findByMeetingIdAndUserId(meetingId, userId)
+            ?: return false
+        
+        // Удаляем доступности участника
+        availabilityRepository.deleteByParticipantId(participant.id)
+        
+        // Удаляем самого участника
+        participantRepository.delete(participant)
+        
+        // Если участников не осталось — удаляем встречу
+        val remaining = participantRepository.findByMeetingId(meetingId)
+        if (remaining.isEmpty()) {
+            // Удаляем оставшиеся доступности встречи (на всякий случай)
+            availabilityRepository.deleteByMeetingId(meetingId)
+            meetingRepository.deleteById(meetingId)
+            println("🗑️ Встреча $meetingId удалена — не осталось участников")
+        }
+        
+        return true
     }
 }

@@ -15,4 +15,8 @@ interface AvailabilityRepository : JpaRepository<Availability, UUID> {
     
     @Query("SELECT a.date FROM Availability a WHERE a.meetingId = :meetingId GROUP BY a.date HAVING COUNT(DISTINCT a.participantId) = :participantCount")
     fun findCommonDates(meetingId: UUID, participantCount: Long): List<LocalDate>
+    
+    fun deleteByParticipantId(participantId: UUID)
+    
+    fun deleteByMeetingId(meetingId: UUID)
 }

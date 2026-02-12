@@ -57,6 +57,17 @@ class MeetingService(
     }
     
     /**
+     * Получение всех встреч, в которых участвует пользователь
+     */
+    @Transactional(readOnly = true)
+    fun getMeetingsForUser(userId: UUID): List<Meeting> {
+        val participants = participantRepository.findByUserId(userId)
+        val meetingIds = participants.map { it.meetingId }
+        if (meetingIds.isEmpty()) return emptyList()
+        return meetingRepository.findAllById(meetingIds)
+    }
+    
+    /**
      * Получение встречи по ID
      */
     @Transactional(readOnly = true)
