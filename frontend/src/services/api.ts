@@ -59,8 +59,8 @@ apiClient.interceptors.response.use(
   (error) => {
     console.error('API Error:', error);
     
-    // Если 401/403 - проблемы с авторизацией
-    if (error.response?.status === 401 || error.response?.status === 403) {
+    // Если 401 - токен недействителен, перенаправляем на авторизацию
+    if (error.response?.status === 401) {
       // Удаляем недействительный токен
       localStorage.removeItem('jwt_token');
       localStorage.removeItem('ya_token');
