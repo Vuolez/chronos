@@ -148,3 +148,10 @@ logs
 # Temporary files
 tmp/
 temp/
+
+# SSL сертификаты (приватный ключ не коммитить)
+ssl-certs/
+
+
+### Confidential files ###
+local/

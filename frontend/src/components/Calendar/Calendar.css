@@ -237,7 +237,42 @@
     font-size: 1rem;
   }
   
+  /* Аватары стопкой с перекрытием на мобильных */
   .calendar .participants-list {
-    max-height: 30px;
+    flex-wrap: nowrap;
+    max-height: 22px;
+    gap: 0;
+    justify-content: center;
+  }
+  
+  /* Меньший размер аватаров + перекрытие */
+  .calendar .participants-list .user-avatar {
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
+    max-width: 16px !important;
+    max-height: 16px !important;
+    font-size: 8px !important;
+    margin-left: -4px;
+    border: 1px solid white;
+    box-sizing: border-box;
+  }
+  
+  .calendar .participants-list .user-avatar:first-child {
+    margin-left: 0;
+  }
+  
+  .calendar .participant-badge.more {
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    min-height: 16px !important;
+    max-width: 16px !important;
+    max-height: 16px !important;
+    font-size: 7px !important;
+    margin-left: -4px;
+    border: 1px solid white;
+    box-sizing: border-box;
   }
 }
