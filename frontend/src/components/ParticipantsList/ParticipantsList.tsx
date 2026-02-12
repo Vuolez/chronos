@@ -59,11 +59,6 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
               </div>
             </div>
             
-            {participant.id === currentParticipantId && (
-              <div className="current-indicator">
-                Это вы
-              </div>
-            )}
           </div>
         ))}
 

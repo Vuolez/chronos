@@ -233,12 +233,6 @@ const MeetingPage: React.FC = () => {
         </button>
         <h1>{meeting?.title || 'Планирование встречи'}</h1>
         <div className="header-info">
-          {meeting && (
-            <span className="share-token">
-              Код встречи: {meeting.shareToken}
-            </span>
-          )}
-
         </div>
       </div>
 
