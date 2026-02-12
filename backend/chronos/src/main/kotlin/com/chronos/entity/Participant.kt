@@ -16,7 +16,7 @@ data class Participant(
     val meetingId: UUID,
     
     @Column(name = "user_id", nullable = true)
-    val userId: UUID? = null,  // Связь с авторизованным пользователем (nullable для гостей)
+    var userId: UUID? = null,  // Связь с авторизованным пользователем (nullable для гостей)
     
     @Column(nullable = false)
     var name: String,
