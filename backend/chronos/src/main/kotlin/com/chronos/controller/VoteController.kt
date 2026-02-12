@@ -15,7 +15,6 @@ import java.util.*
  * Контроллер голосования за финальную дату встречи
  */
 @RestController
-@RequestMapping("/api")
 class VoteController(
     private val voteService: VoteService,
     private val participantService: ParticipantService
