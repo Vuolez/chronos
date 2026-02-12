@@ -119,8 +119,6 @@
 
 .calendar-day.selected {
   background: #667eea !important;
-  height: 80px;
-  min-height: 80px;
 }
 
 .calendar-day.selected .day-number {
