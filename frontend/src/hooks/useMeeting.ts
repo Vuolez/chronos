@@ -382,20 +382,23 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     try {
       const meetingDetail = await meetingApi.getMeetingByToken(shareToken);
       
-      // Загружаем голоса
-      let newVotes: Vote[] = [];
+      // Загружаем голоса (при ошибке сохраняем текущие)
+      let newVotes: Vote[] | null = null;
       try {
         newVotes = await meetingApi.getVotes(meetingDetail.meeting.id);
       } catch (e) {
         console.warn('⚠️ Не удалось загрузить голоса при обновлении:', e);
       }
 
+      // Используем загруженные голоса или текущие (если загрузка не удалась)
+      const votesToCompare = newVotes ?? state.votes;
+
       // Сравниваем хэш данных чтобы обновлять только при изменениях
       const newDataHash = JSON.stringify({
         participants: meetingDetail.participants.map(p => ({ id: p.id, name: p.name, isAuthenticated: p.isAuthenticated })),
         availabilities: meetingDetail.availabilities.map(a => ({ participantId: a.participantId, date: a.date })),
         commonDates: meetingDetail.commonAvailableDates,
-        votes: newVotes.map(v => ({ participantId: v.participantId, votedDate: v.votedDate }))
+        votes: votesToCompare.map(v => ({ participantId: v.participantId, votedDate: v.votedDate }))
       });
       
       const currentDataHash = JSON.stringify({
@@ -415,7 +418,7 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
           participants: meetingDetail.participants,
           availabilities: meetingDetail.availabilities,
           commonDates: meetingDetail.commonAvailableDates,
-          votes: newVotes,
+          votes: votesToCompare,
         });
       } else {
         console.log('✅ Данные встречи актуальны');
