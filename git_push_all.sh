@@ -1,3 +1,3 @@
-sudo git add .
-sudo git commit -m "update"
-sudo git push
+git add .
+git commit -m "update"
+git push
