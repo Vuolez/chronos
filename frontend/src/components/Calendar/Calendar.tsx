@@ -115,6 +115,8 @@ const Calendar: React.FC<CalendarProps> = ({
               day.isSelectedByCurrentUser ? 'selected' : ''
             } ${
               day.isToday ? 'today' : ''
+            } ${
+              totalParticipants > 0 && day.participants.length === totalParticipants ? 'all-voted' : ''
             }`}
             onClick={() => handleDayClick(day)}
           >

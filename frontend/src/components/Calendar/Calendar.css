@@ -152,6 +152,32 @@
   background: rgba(255, 255, 255, 0.3);
 }
 
+/* День, за который проголосовали все участники */
+.calendar-day.all-voted {
+  background: #4caf50 !important;
+}
+
+.calendar-day.all-voted .day-number {
+  color: white !important;
+  font-weight: 600;
+}
+
+.calendar-day.all-voted:hover {
+  background: #43a047 !important;
+}
+
+.calendar-day.all-voted .day-vote-count {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.calendar-day.all-voted .participants-avatars .user-avatar {
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.4);
+}
+
+.calendar-day.all-voted.today .day-number {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 /* Область участников в ячейке дня */
 .calendar .day-participants-area {
   display: flex;
