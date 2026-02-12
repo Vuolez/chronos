@@ -126,14 +126,29 @@ class MeetingController(
     
     /**
      * Получение списка встреч текущего пользователя
+     * Возвращает простую DTO без JsonNullable обёрток
      */
     @GetMapping("/meetings/my")
-    fun getMyMeetings(): ResponseEntity<List<MeetingResponse>> {
+    fun getMyMeetings(): ResponseEntity<List<MyMeetingItem>> {
         val currentUser = SecurityUtils.getCurrentUser()
             ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         
         val meetings = meetingService.getMeetingsForUser(currentUser.id)
-        val response = meetings.map { convertToMeetingResponse(it) }
+        val response = meetings.map { meeting ->
+            val creator = meeting.createdByUserId?.let { meetingService.getMeetingCreator(meeting.id) }
+            val participantCount = participantService.getParticipantsByMeetingId(meeting.id).size
+            MyMeetingItem(
+                id = meeting.id,
+                title = meeting.title,
+                description = meeting.description,
+                shareToken = meeting.shareToken,
+                status = meeting.status.name,
+                participantCount = participantCount,
+                createdByName = creator?.name,
+                createdAt = meeting.createdAt,
+                updatedAt = meeting.updatedAt
+            )
+        }
         return ResponseEntity.ok(response)
     }
     
@@ -172,3 +187,18 @@ class MeetingController(
         return ResponseEntity.ok(response)
     }
 }
+
+/**
+ * Простая DTO для списка встреч пользователя (без JsonNullable)
+ */
+data class MyMeetingItem(
+    val id: UUID,
+    val title: String,
+    val description: String?,
+    val shareToken: String,
+    val status: String,
+    val participantCount: Int,
+    val createdByName: String?,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime
+)

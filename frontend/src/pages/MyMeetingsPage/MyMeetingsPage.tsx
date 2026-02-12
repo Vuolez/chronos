@@ -1,15 +1,27 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { meetingApi } from '../../services/api';
-import { Meeting, MeetingStatus } from '../../types';
 import './MyMeetingsPage.css';
+
+// Тип, соответствующий MyMeetingItem из бэкенда
+interface MyMeetingItem {
+  id: string;
+  title: string;
+  description?: string | null;
+  shareToken: string;
+  status: string;
+  participantCount: number;
+  createdByName?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
 
 const MyMeetingsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [meetings, setMeetings] = useState<MyMeetingItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
+  const [selectedMeeting, setSelectedMeeting] = useState<MyMeetingItem | null>(null);
   const [isLeaving, setIsLeaving] = useState(false);
 
   const loadMeetings = useCallback(async () => {
@@ -29,7 +41,7 @@ const MyMeetingsPage: React.FC = () => {
     loadMeetings();
   }, [loadMeetings]);
 
-  const handleMeetingClick = (meeting: Meeting) => {
+  const handleMeetingClick = (meeting: MyMeetingItem) => {
     setSelectedMeeting(meeting);
   };
 
@@ -64,22 +76,22 @@ const MyMeetingsPage: React.FC = () => {
     }
   };
 
-  const getStatusLabel = (status: MeetingStatus): string => {
+  const getStatusLabel = (status: string): string => {
     switch (status) {
-      case MeetingStatus.PLANNING: return 'Планирование';
-      case MeetingStatus.VOTING: return 'Голосование';
-      case MeetingStatus.COMPLETED: return 'Завершена';
-      case MeetingStatus.CANCELED: return 'Отменена';
+      case 'PLANNING': return 'Планирование';
+      case 'VOTING': return 'Голосование';
+      case 'COMPLETED': return 'Завершена';
+      case 'CANCELED': return 'Отменена';
       default: return status;
     }
   };
 
-  const getStatusClass = (status: MeetingStatus): string => {
+  const getStatusClass = (status: string): string => {
     switch (status) {
-      case MeetingStatus.PLANNING: return 'status-planning';
-      case MeetingStatus.VOTING: return 'status-voting';
-      case MeetingStatus.COMPLETED: return 'status-completed';
-      case MeetingStatus.CANCELED: return 'status-canceled';
+      case 'PLANNING': return 'status-planning';
+      case 'VOTING': return 'status-voting';
+      case 'COMPLETED': return 'status-completed';
+      case 'CANCELED': return 'status-canceled';
       default: return '';
     }
   };
@@ -151,9 +163,12 @@ const MyMeetingsPage: React.FC = () => {
                   <span className="meeting-card-date">
                     Создана: {formatDate(meeting.createdAt)}
                   </span>
-                  {meeting.createdBy && (
+                  <span className="meeting-card-participants">
+                    Участников: {meeting.participantCount}
+                  </span>
+                  {meeting.createdByName && (
                     <span className="meeting-card-creator">
-                      Автор: {meeting.createdBy.name}
+                      Автор: {meeting.createdByName}
                     </span>
                   )}
                 </div>

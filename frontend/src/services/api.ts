@@ -192,8 +192,8 @@ export const meetingApi = {
   },
 
   // Получить все встречи текущего пользователя
-  async getMyMeetings(): Promise<Meeting[]> {
-    const response = await apiClient.get<Meeting[]>('/meetings/my');
+  async getMyMeetings(): Promise<any[]> {
+    const response = await apiClient.get<any[]>('/meetings/my');
     return response.data;
   },
 
