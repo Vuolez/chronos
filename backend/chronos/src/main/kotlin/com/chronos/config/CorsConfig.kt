@@ -19,7 +19,8 @@ class CorsConfig {
         // Разрешенные источники (конкретные для credentials)
         configuration.allowedOrigins = listOf(
             "http://localhost:3000",
-            "http://localhost:5173"
+            "http://localhost:5173",
+            "https://chronos-scheduler.ru"
         )
         
         // Разрешенные HTTP методы
