@@ -179,6 +179,17 @@ export const meetingApi = {
     return response.data;
   },
 
+  // Удалить доступность участника для даты
+  async removeAvailability(
+    meetingId: string,
+    participantId: string,
+    date: string
+  ): Promise<void> {
+    await apiClient.delete(
+      `/meetings/${meetingId}/participants/${participantId}/availability/${date}`
+    );
+  },
+
   // Получить всю доступность для встречи
   async getAvailability(meetingId: string): Promise<Availability[]> {
     const response = await apiClient.get<Availability[]>(`/meetings/${meetingId}/availability`);

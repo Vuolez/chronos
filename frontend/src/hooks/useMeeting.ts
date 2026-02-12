@@ -230,25 +230,47 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     });
   }, [updateState, state.availabilities]);
 
+  // Удаление доступности для даты
+  const removeAvailabilityForDate = useCallback(async (participantId: string, date: string) => {
+    if (!state.meeting) return;
+    
+    try {
+      await meetingApi.removeAvailability(state.meeting.id, participantId, date);
+      
+      // Убираем удалённую доступность из локального состояния
+      const updatedAvailabilities = state.availabilities.filter(
+        a => !(a.participantId === participantId && a.date === date)
+      );
+      updateState({ availabilities: updatedAvailabilities });
+    } catch (error) {
+      console.error('❌ Ошибка удаления доступности:', error);
+    }
+  }, [state.meeting, state.availabilities, updateState]);
+
   // Переключение выбора даты
   const toggleDateSelection = useCallback((date: string) => {
     console.log('📅 toggleDateSelection: дата =', date, 'текущий участник =', state.currentParticipantId);
     
-    const newSelectedDates = state.selectedDates.includes(date)
+    const isRemoving = state.selectedDates.includes(date);
+    const newSelectedDates = isRemoving
       ? state.selectedDates.filter(d => d !== date)
       : [...state.selectedDates, date];
     
-    console.log('📅 Новые выбранные даты:', newSelectedDates);
+    console.log('📅 Новые выбранные даты:', newSelectedDates, isRemoving ? '(удаление)' : '(добавление)');
     updateState({ selectedDates: newSelectedDates });
     
-    // updateAvailability теперь сама фильтрует только новые даты
     if (state.currentParticipantId) {
-      console.log('📅 Отправляем запрос на сервер для участника:', state.currentParticipantId);
-      updateAvailability(state.currentParticipantId, newSelectedDates);
+      if (isRemoving) {
+        // Удаляем дату с сервера
+        removeAvailabilityForDate(state.currentParticipantId, date);
+      } else {
+        // Добавляем дату на сервер
+        updateAvailability(state.currentParticipantId, newSelectedDates);
+      }
     } else {
       console.warn('⚠️ Нет текущего участника для сохранения доступности');
     }
-  }, [state.selectedDates, state.currentParticipantId, updateAvailability]);
+  }, [state.selectedDates, state.currentParticipantId, updateAvailability, removeAvailabilityForDate]);
 
   // Очистка ошибки
   const clearError = useCallback(() => {

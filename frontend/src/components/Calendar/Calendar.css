@@ -118,15 +118,18 @@
 }
 
 .calendar-day.selected {
-  background: #ffffff !important;
-  color: white;
+  background: #667eea !important;
   height: 80px;
   min-height: 80px;
 }
 
 .calendar-day.selected .day-number {
-  color: rgb(0, 0, 0) !important;
-  font-weight: 500;
+  color: white !important;
+  font-weight: 600;
+}
+
+.calendar-day.selected:hover {
+  background: #5a6fd8 !important;
 }
 
 .calendar-day.today .day-number {
@@ -149,6 +152,12 @@
 
 .calendar-day.selected.today .day-number {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* Аватары на выбранных днях — светлый фон для контраста */
+.calendar-day.selected .participants-list .user-avatar {
+  border: 1.5px solid white !important;
+  box-sizing: border-box;
 }
 
 /* UserAvatar в календаре уже имеет свои стили из UserAvatar.css */
@@ -174,8 +183,10 @@
 }
 
 .calendar .calendar-day.selected .participant-badge.more {
-  background: rgba(255, 255, 255, 0.8);
-  color: #666;
+  background: rgba(255, 255, 255, 0.9);
+  color: #667eea;
+  border: 1.5px solid white;
+  box-sizing: border-box;
 }
 
 /* Список участников на дне */

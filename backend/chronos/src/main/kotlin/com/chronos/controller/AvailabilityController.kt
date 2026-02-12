@@ -9,8 +9,7 @@ import com.chronos.service.ParticipantService
 import org.openapitools.jackson.nullable.JsonNullable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.*
@@ -57,6 +56,31 @@ class AvailabilityController(
         return ResponseEntity.ok(commonDates)
     }
 
+    /**
+     * Удаление доступности участника для конкретной даты
+     */
+    @DeleteMapping("/meetings/{meetingId}/participants/{participantId}/availability/{date}")
+    fun removeAvailability(
+        @PathVariable meetingId: UUID,
+        @PathVariable participantId: UUID,
+        @PathVariable date: String
+    ): ResponseEntity<Void> {
+        val currentUser = SecurityUtils.getCurrentUser()
+        
+        if (!participantService.canUserModifyParticipant(participantId, currentUser)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+        }
+        
+        val localDate = LocalDate.parse(date)
+        val success = availabilityService.removeAvailability(participantId, meetingId, localDate)
+        
+        return if (success) {
+            ResponseEntity.ok().build()
+        } else {
+            ResponseEntity.notFound().build()
+        }
+    }
+    
     private fun convertToAvailabilityResponse(availability: com.chronos.entity.Availability): AvailabilityResponse {
         return AvailabilityResponse()
             .id(availability.id)
