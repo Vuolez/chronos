@@ -247,6 +247,27 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     }
   }, [state.meeting, state.availabilities, updateState]);
 
+  // Вычисление общих дат из availabilities
+  const computeCommonDates = useCallback((
+    availabilities: { participantId: string; date: string }[],
+    participants: Participant[]
+  ): string[] => {
+    if (participants.length === 0) return [];
+
+    const dateParticipants = new Map<string, Set<string>>();
+    for (const a of availabilities) {
+      if (!dateParticipants.has(a.date)) {
+        dateParticipants.set(a.date, new Set());
+      }
+      dateParticipants.get(a.date)!.add(a.participantId);
+    }
+
+    return Array.from(dateParticipants.entries())
+      .filter(([, pIds]) => pIds.size === participants.length)
+      .map(([date]) => date)
+      .sort();
+  }, []);
+
   // Переключение выбора даты
   const toggleDateSelection = useCallback((date: string) => {
     console.log('📅 toggleDateSelection: дата =', date, 'текущий участник =', state.currentParticipantId);
@@ -257,7 +278,25 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
       : [...state.selectedDates, date];
     
     console.log('📅 Новые выбранные даты:', newSelectedDates, isRemoving ? '(удаление)' : '(добавление)');
-    updateState({ selectedDates: newSelectedDates });
+
+    // Оптимистичное вычисление commonDates
+    let optimisticAvailabilities: { participantId: string; date: string }[];
+    if (isRemoving) {
+      optimisticAvailabilities = state.availabilities.filter(
+        a => !(a.participantId === state.currentParticipantId && a.date === date)
+      );
+    } else {
+      const alreadyExists = state.availabilities.some(
+        a => a.participantId === state.currentParticipantId && a.date === date
+      );
+      optimisticAvailabilities = alreadyExists
+        ? [...state.availabilities]
+        : [...state.availabilities, { participantId: state.currentParticipantId!, date }];
+    }
+
+    const newCommonDates = computeCommonDates(optimisticAvailabilities, state.participants);
+
+    updateState({ selectedDates: newSelectedDates, commonDates: newCommonDates });
     
     if (state.currentParticipantId) {
       if (isRemoving) {
@@ -270,7 +309,7 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     } else {
       console.warn('⚠️ Нет текущего участника для сохранения доступности');
     }
-  }, [state.selectedDates, state.currentParticipantId, updateAvailability, removeAvailabilityForDate]);
+  }, [state.selectedDates, state.currentParticipantId, state.availabilities, state.participants, updateAvailability, removeAvailabilityForDate, updateState, computeCommonDates]);
 
   // Очистка ошибки
   const clearError = useCallback(() => {
