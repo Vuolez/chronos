@@ -261,48 +261,85 @@
   text-transform: capitalize;
 }
 
-/* Стили для общих дат */
-.common-dates-info {
-  background: #f0f9ff;
-  border: 2px solid #0ea5e9;
+/* Голосование за финальную дату */
+.final-vote-section {
+  background: white;
   border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   padding: 20px;
   margin-top: 20px;
 }
 
-.common-dates-info h3 {
+.final-vote-section h3 {
   margin: 0 0 16px 0;
-  color: #0c4a6e;
-  font-size: 1.2rem;
+  color: #333;
+  font-size: 1.1rem;
   font-weight: 600;
+}
+
+.vote-dates-list {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
 }
 
-.common-date {
-  background: #0ea5e9;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 25px;
+.vote-date-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e5e5;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.vote-date-btn:hover {
+  border-color: #667eea;
+  background: #f0f4ff;
+}
+
+.vote-date-btn.vote-date-selected {
+  border-color: #4caf50;
+  background: #e8f5e9;
+}
+
+.vote-date-btn.vote-date-selected:hover {
+  border-color: #43a047;
+  background: #c8e6c9;
+}
+
+.vote-date-label {
   font-size: 0.95rem;
   font-weight: 500;
+  color: #333;
   text-transform: capitalize;
-  box-shadow: 0 2px 4px rgba(14, 165, 233, 0.3);
-  transition: transform 0.2s ease;
 }
 
-.common-date:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(14, 165, 233, 0.4);
+.vote-date-selected .vote-date-label {
+  color: #2e7d32;
 }
 
-.common-dates-description {
-  margin: 16px 0 0 0;
-  color: #0c4a6e;
-  font-size: 0.9rem;
-  font-style: italic;
-  text-align: center;
+.vote-count {
+  background: #667eea;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  flex-shrink: 0;
+}
+
+.vote-date-selected .vote-count {
+  background: #4caf50;
 }
 
 /* Блок отсутствия общих дат */
@@ -313,13 +350,6 @@
   padding: 20px;
   margin-top: 20px;
   text-align: center;
-}
-
-.no-common-dates h3 {
-  margin: 0 0 12px 0;
-  color: #92400e;
-  font-size: 1.1rem;
-  font-weight: 600;
 }
 
 .no-common-dates p {

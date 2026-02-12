@@ -8,6 +8,7 @@ import {
   MeetingDetail, 
   Participant, 
   Availability,
+  Vote,
   CreateMeetingRequest,
   AddParticipantRequest,
   UpdateAvailabilityRequest,
@@ -20,6 +21,7 @@ interface UseMeetingState {
   participants: Participant[];
   availabilities: Availability[];
   commonDates: string[];
+  votes: Vote[];
   
   // Состояние загрузки
   isLoading: boolean;
@@ -37,6 +39,7 @@ interface UseMeetingActions {
   updateAvailability: (participantId: string, dates: string[]) => Promise<boolean>;
   setCurrentParticipant: (participantId: string) => void;
   toggleDateSelection: (date: string) => void;
+  castFinalVote: (date: string) => void;
   clearError: () => void;
   
   // Автообновление
@@ -50,6 +53,7 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     participants: [],
     availabilities: [],
     commonDates: [],
+    votes: [],
     isLoading: false,
     error: null,
     selectedDates: [],
@@ -75,6 +79,7 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
         isLoading: false,
         participants: [],
         availabilities: [],
+        votes: [],
         selectedDates: [],
         currentParticipantId: null
       });
@@ -103,12 +108,21 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
         user: p.user,
         email: p.email
       })));
+
+      // Загружаем голоса отдельным запросом
+      let votes: Vote[] = [];
+      try {
+        votes = await meetingApi.getVotes(meetingDetail.meeting.id);
+      } catch (e) {
+        console.warn('⚠️ Не удалось загрузить голоса:', e);
+      }
       
       updateState({
         meeting: meetingDetail.meeting,
         participants: meetingDetail.participants,
         availabilities: meetingDetail.availabilities,
         commonDates: meetingDetail.commonAvailableDates,
+        votes,
         isLoading: false,
         selectedDates: [],
         currentParticipantId: null
@@ -311,6 +325,53 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     }
   }, [state.selectedDates, state.currentParticipantId, state.availabilities, state.participants, updateAvailability, removeAvailabilityForDate, updateState, computeCommonDates]);
 
+  // Голосование за финальную дату
+  const castFinalVote = useCallback((date: string) => {
+    if (!state.meeting || !state.currentParticipantId) {
+      console.warn('⚠️ Нет встречи или текущего участника для голосования');
+      return;
+    }
+
+    const currentVote = state.votes.find(v => v.participantId === state.currentParticipantId);
+    const isUnvoting = currentVote?.votedDate === date;
+
+    if (isUnvoting) {
+      // Отмена голоса — оптимистично убираем
+      const updatedVotes = state.votes.filter(v => v.participantId !== state.currentParticipantId);
+      updateState({ votes: updatedVotes });
+
+      // Отправляем на сервер
+      meetingApi.removeVote(state.meeting.id, state.currentParticipantId).catch(err => {
+        console.error('❌ Ошибка удаления голоса:', err);
+      });
+    } else {
+      // Голосуем / меняем голос — оптимистично обновляем
+      const optimisticVote: Vote = {
+        id: `optimistic-${Date.now()}`,
+        participantId: state.currentParticipantId,
+        meetingId: state.meeting.id,
+        votedDate: date,
+        createdAt: new Date().toISOString()
+      };
+      const updatedVotes = [
+        ...state.votes.filter(v => v.participantId !== state.currentParticipantId),
+        optimisticVote
+      ];
+      updateState({ votes: updatedVotes });
+
+      // Отправляем на сервер
+      meetingApi.castVote(state.meeting.id, state.currentParticipantId, date).then(realVote => {
+        // Заменяем оптимистичный голос реальным
+        setState(prev => ({
+          ...prev,
+          votes: prev.votes.map(v => v.id === optimisticVote.id ? realVote : v)
+        }));
+      }).catch(err => {
+        console.error('❌ Ошибка голосования:', err);
+      });
+    }
+  }, [state.meeting, state.currentParticipantId, state.votes, updateState]);
+
   // Очистка ошибки
   const clearError = useCallback(() => {
     updateState({ error: null });
@@ -321,17 +382,27 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     try {
       const meetingDetail = await meetingApi.getMeetingByToken(shareToken);
       
+      // Загружаем голоса
+      let newVotes: Vote[] = [];
+      try {
+        newVotes = await meetingApi.getVotes(meetingDetail.meeting.id);
+      } catch (e) {
+        console.warn('⚠️ Не удалось загрузить голоса при обновлении:', e);
+      }
+
       // Сравниваем хэш данных чтобы обновлять только при изменениях
       const newDataHash = JSON.stringify({
         participants: meetingDetail.participants.map(p => ({ id: p.id, name: p.name, isAuthenticated: p.isAuthenticated })),
         availabilities: meetingDetail.availabilities.map(a => ({ participantId: a.participantId, date: a.date })),
-        commonDates: meetingDetail.commonAvailableDates
+        commonDates: meetingDetail.commonAvailableDates,
+        votes: newVotes.map(v => ({ participantId: v.participantId, votedDate: v.votedDate }))
       });
       
       const currentDataHash = JSON.stringify({
         participants: state.participants.map(p => ({ id: p.id, name: p.name, isAuthenticated: p.isAuthenticated })),
         availabilities: state.availabilities.map(a => ({ participantId: a.participantId, date: a.date })),
-        commonDates: state.commonDates
+        commonDates: state.commonDates,
+        votes: state.votes.map(v => ({ participantId: v.participantId, votedDate: v.votedDate }))
       });
       
       // Обновляем только если данные изменились
@@ -344,6 +415,7 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
           participants: meetingDetail.participants,
           availabilities: meetingDetail.availabilities,
           commonDates: meetingDetail.commonAvailableDates,
+          votes: newVotes,
         });
       } else {
         console.log('✅ Данные встречи актуальны');
@@ -352,7 +424,7 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
       console.warn('⚠️ Ошибка автообновления:', error);
       // Не показываем ошибку пользователю для автообновления
     }
-  }, [state.participants, state.availabilities, state.commonDates, updateState]);
+  }, [state.participants, state.availabilities, state.commonDates, state.votes, updateState]);
 
   // Запуск автообновления
   const startAutoRefresh = useCallback((shareToken: string, intervalMs: number = 5000) => {
@@ -381,6 +453,7 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     updateAvailability,
     setCurrentParticipant,
     toggleDateSelection,
+    castFinalVote,
     clearError,
     startAutoRefresh,
     stopAutoRefresh,

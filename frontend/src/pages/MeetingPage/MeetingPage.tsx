@@ -20,12 +20,14 @@ const MeetingPage: React.FC = () => {
     availabilities,
     selectedDates,
     commonDates,
+    votes,
     currentParticipantId,
     isLoading,
     error,
     createMeeting,
     loadMeeting,
     toggleDateSelection,
+    castFinalVote,
     setCurrentParticipant,
     clearError,
     startAutoRefresh,
@@ -256,32 +258,56 @@ const MeetingPage: React.FC = () => {
             participantAvailabilities={participantAvailabilities}
           />
           
-          {/* Информация об общих датах */}
+          {/* Голосование за финальную дату */}
           {commonDates.length > 0 && (
-            <div className="common-dates-info">
-              <h3>🎯 Общие даты всех участников</h3>
-              <div className="dates-list">
-                {commonDates.map(date => (
-                  <div key={date} className="common-date">
-                    {new Date(date + 'T00:00:00').toLocaleDateString('ru-RU', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </div>
-                ))}
+            <div className="final-vote-section">
+              <h3>Голосование за финальную дату</h3>
+              <div className="vote-dates-list">
+                {(() => {
+                  // Считаем голоса для каждой общей даты
+                  const voteCounts = new Map<string, number>();
+                  for (const v of votes) {
+                    voteCounts.set(v.votedDate, (voteCounts.get(v.votedDate) || 0) + 1);
+                  }
+
+                  // Текущий голос пользователя
+                  const currentUserVote = votes.find(v => v.participantId === currentParticipantId);
+
+                  // Сортируем: сначала с наибольшим числом голосов
+                  const sortedDates = [...commonDates].sort((a, b) => {
+                    return (voteCounts.get(b) || 0) - (voteCounts.get(a) || 0);
+                  });
+
+                  return sortedDates.map(date => {
+                    const count = voteCounts.get(date) || 0;
+                    const isSelected = currentUserVote?.votedDate === date;
+                    return (
+                      <button
+                        key={date}
+                        className={`vote-date-btn ${isSelected ? 'vote-date-selected' : ''}`}
+                        onClick={() => castFinalVote(date)}
+                      >
+                        <span className="vote-date-label">
+                          {new Date(date + 'T00:00:00').toLocaleDateString('ru-RU', {
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'long'
+                          })}
+                        </span>
+                        {count > 0 && (
+                          <span className="vote-count">{count}</span>
+                        )}
+                      </button>
+                    );
+                  });
+                })()}
               </div>
-              <p className="common-dates-description">
-                Эти даты подходят всем участникам встречи
-              </p>
             </div>
           )}
           
           {/* Если нет общих дат, но есть участники */}
           {commonDates.length === 0 && participants.length > 1 && (
             <div className="no-common-dates">
-              <h3>😔 Пока нет общих дат</h3>
               <p>Участникам нужно выбрать больше дат, чтобы найти пересечения</p>
             </div>
           )}

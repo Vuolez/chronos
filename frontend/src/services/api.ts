@@ -14,6 +14,7 @@ import {
   MeetingDetail,
   Participant,
   Availability,
+  Vote,
   ApiErrorResponse 
 } from '../types';
 
@@ -211,6 +212,28 @@ export const meetingApi = {
   // Выйти из встречи
   async leaveMeeting(meetingId: string): Promise<void> {
     await apiClient.post(`/meetings/${meetingId}/leave`);
+  },
+
+  // Получить все голоса за финальную дату
+  async getVotes(meetingId: string): Promise<Vote[]> {
+    const response = await apiClient.get<Vote[]>(`/meetings/${meetingId}/votes`);
+    return response.data;
+  },
+
+  // Проголосовать за финальную дату (или изменить голос)
+  async castVote(meetingId: string, participantId: string, date: string): Promise<Vote> {
+    const response = await apiClient.put<Vote>(
+      `/meetings/${meetingId}/participants/${participantId}/vote`,
+      { date }
+    );
+    return response.data;
+  },
+
+  // Удалить голос за финальную дату
+  async removeVote(meetingId: string, participantId: string): Promise<void> {
+    await apiClient.delete(
+      `/meetings/${meetingId}/participants/${participantId}/vote`
+    );
   }
 };
 

@@ -54,6 +54,15 @@ export interface Availability {
   createdAt: string; // ISO datetime string
 }
 
+// Голос участника за финальную дату
+export interface Vote {
+  id: string;
+  participantId: string;
+  meetingId: string;
+  votedDate: string;   // ISO date string (YYYY-MM-DD)
+  createdAt: string;   // ISO datetime string
+}
+
 // Детальная информация о встрече (включает участников и доступности)
 export interface MeetingDetail {
   meeting: Meeting;
