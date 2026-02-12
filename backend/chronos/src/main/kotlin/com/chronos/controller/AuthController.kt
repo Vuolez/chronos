@@ -29,7 +29,6 @@ import java.util.*
  */
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = ["http://localhost:3000", "http://localhost:5173"], allowCredentials = "true")
 class AuthController(
     private val userService: UserService,
     private val jwtService: JwtService
@@ -89,7 +88,6 @@ class AuthController(
      * SecurityUtils.requireCurrentUser() получает пользователя из Security Context
      */
     @GetMapping("/me")
-    @CrossOrigin(origins = ["http://localhost:3000", "http://localhost:5173"], allowCredentials = "true")
     fun getCurrentUser(): ResponseEntity<UserInfo> {
         // Получаем текущего пользователя из Security Context
         // Если пользователь не авторизован - метод выбросит исключение

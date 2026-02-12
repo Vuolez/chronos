@@ -9,12 +9,11 @@ import com.chronos.security.SecurityUtils
 import com.chronos.service.ParticipantService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.CrossOrigin
+
 import org.springframework.web.bind.annotation.RestController
 import java.util.*
 
 @RestController
-@CrossOrigin(origins = ["http://localhost:3000", "http://localhost:5173"], allowCredentials = "true")
 class ParticipantController(
     private val participantService: ParticipantService
 ) : ParticipantsApi {

@@ -9,14 +9,13 @@ import com.chronos.service.ParticipantService
 import org.openapitools.jackson.nullable.JsonNullable
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.CrossOrigin
+
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.*
 
 @RestController
-@CrossOrigin(origins = ["http://localhost:3000", "http://localhost:5173"], allowCredentials = "true")
 class AvailabilityController(
     private val availabilityService: AvailabilityService,
     private val participantService: ParticipantService

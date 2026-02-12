@@ -56,11 +56,10 @@ class SecurityConfig(
             .authorizeHttpRequests { auth ->
                 auth
                     // ПУБЛИЧНЫЕ ENDPOINTS (без авторизации):
-                    // Пути с префиксом /api т.к. server.servlet.context-path: /api
                     
                     // Авторизация - login и logout публичные, /me требует токен
-                    .requestMatchers("/api/auth/login", "/api/auth/logout").permitAll()
-                    .requestMatchers("/api/auth/me").authenticated()
+                    .requestMatchers("/auth/login", "/auth/logout").permitAll()
+                    .requestMatchers("/auth/me").authenticated()
                     
                     // Swagger UI - для разработки
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()

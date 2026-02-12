@@ -17,7 +17,6 @@ import java.time.LocalTime
 import java.util.*
 
 @RestController
-@CrossOrigin(origins = ["http://localhost:3000", "http://localhost:5173"], allowCredentials = "true")
 class MeetingController(
     private val meetingService: MeetingService,
     private val participantService: ParticipantService,
