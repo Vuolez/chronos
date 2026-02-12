@@ -252,6 +252,7 @@ const MeetingPage: React.FC = () => {
           <Calendar
             selectedDates={selectedDates}
             onDateClick={toggleDateSelection}
+            totalParticipants={participants.length}
             participantAvailabilities={participantAvailabilities}
           />
           

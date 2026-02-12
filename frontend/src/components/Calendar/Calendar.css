@@ -154,57 +154,33 @@
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* Аватары на выбранных днях — светлый фон для контраста */
-.calendar-day.selected .participants-list .user-avatar {
-  border: 1.5px solid white !important;
-  box-sizing: border-box;
-}
-
-/* UserAvatar в календаре уже имеет свои стили из UserAvatar.css */
-
-/* Стили для кнопки "+X" (больше участников) */
-.calendar .participant-badge.more {
-  background: #999;
-  color: white;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  font-size: 0.6rem;
-  font-weight: 600;
+/* Область участников в ячейке дня */
+.calendar .day-participants-area {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  flex-grow: 0;
-  min-width: 18px;
-  min-height: 18px;
-  max-width: 18px;
-  max-height: 18px;
-}
-
-.calendar .calendar-day.selected .participant-badge.more {
-  background: rgba(255, 255, 255, 0.9);
-  color: #667eea;
-  border: 1.5px solid white;
-  box-sizing: border-box;
-}
-
-/* Список участников на дне */
-.calendar .participants-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
   width: 100%;
-  margin-top: 4px;
-  max-height: 50px;
-  overflow: hidden;
+  flex-grow: 1;
+  margin-top: 2px;
+}
+
+/* Контейнер аватаров — равномерно по ширине */
+.calendar .participants-avatars {
+  --avatar-size: 18px;
+  position: relative;
+  width: 100%;
+  height: var(--avatar-size);
   flex-shrink: 0;
 }
 
-/* Аватары участников в календаре должны быть строго круглыми */
-.calendar .participants-list .user-avatar {
+/* Позиция аватара (абсолютная) */
+.calendar .avatar-position {
+  position: absolute;
+  top: 0;
+}
+
+/* Аватары участников в календаре — строго круглые */
+.calendar .participants-avatars .user-avatar {
   flex-shrink: 0;
   flex-grow: 0;
   width: 18px !important;
@@ -218,6 +194,26 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  box-shadow: 0 0 0 1.5px white;
+}
+
+/* Аватары на выбранных днях — обводка белая */
+.calendar-day.selected .participants-avatars .user-avatar {
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.4);
+}
+
+/* Счётчик голосов */
+.calendar .day-vote-count {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #888;
+  text-align: center;
+  margin-top: 3px;
+  line-height: 1;
+}
+
+.calendar-day.selected .day-vote-count {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 /* Адаптивность */
@@ -248,16 +244,13 @@
     font-size: 1rem;
   }
   
-  /* Аватары стопкой с перекрытием на мобильных */
-  .calendar .participants-list {
-    flex-wrap: nowrap;
-    max-height: 22px;
-    gap: 0;
-    justify-content: center;
+  /* Меньший размер аватаров на мобильных */
+  .calendar .participants-avatars {
+    --avatar-size: 16px;
+    height: 16px;
   }
   
-  /* Меньший размер аватаров + перекрытие */
-  .calendar .participants-list .user-avatar {
+  .calendar .participants-avatars .user-avatar {
     width: 16px !important;
     height: 16px !important;
     min-width: 16px !important;
@@ -265,25 +258,10 @@
     max-width: 16px !important;
     max-height: 16px !important;
     font-size: 8px !important;
-    margin-left: -4px;
-    border: 1px solid white;
-    box-sizing: border-box;
   }
   
-  .calendar .participants-list .user-avatar:first-child {
-    margin-left: 0;
-  }
-  
-  .calendar .participant-badge.more {
-    width: 16px !important;
-    height: 16px !important;
-    min-width: 16px !important;
-    min-height: 16px !important;
-    max-width: 16px !important;
-    max-height: 16px !important;
-    font-size: 7px !important;
-    margin-left: -4px;
-    border: 1px solid white;
-    box-sizing: border-box;
+  .calendar .day-vote-count {
+    font-size: 0.55rem;
+    margin-top: 1px;
   }
 }

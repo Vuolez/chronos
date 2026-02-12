@@ -16,6 +16,7 @@ import './Calendar.css';
 interface CalendarProps {
   selectedDates: string[];           // Выбранные даты в ISO формате
   onDateClick: (date: string) => void; // Обработчик клика по дате
+  totalParticipants?: number;          // Общее количество участников
   participantAvailabilities?: Array<{  // Доступности участников для отображения
     date: string;
     participantName: string;
@@ -25,6 +26,7 @@ interface CalendarProps {
 const Calendar: React.FC<CalendarProps> = ({
   selectedDates,
   onDateClick,
+  totalParticipants = 0,
   participantAvailabilities = []
 }) => {
   // Состояние текущего месяца и года
@@ -121,19 +123,33 @@ const Calendar: React.FC<CalendarProps> = ({
             
             {/* Участники, выбравшие этот день */}
             {day.participants.length > 0 && (
-              <div className="participants-list">
-                {day.participants.slice(0, 3).map((participant, idx) => (
-                  <UserAvatar
-                    key={idx}
-                    name={participant}
-                    size="tiny"
-                    className="participant-badge"
-                    showTooltip={true}
-                  />
-                ))}
-                {day.participants.length > 3 && (
-                  <div className="participant-badge more">
-                    +{day.participants.length - 3}
+              <div className="day-participants-area">
+                <div className="participants-avatars">
+                  {day.participants.map((participant, idx) => {
+                    const count = day.participants.length;
+                    const fraction = count === 1 ? 0 : idx / (count - 1);
+                    return (
+                      <div
+                        key={idx}
+                        className="avatar-position"
+                        style={{
+                          left: count === 1 ? '0' : `calc(${fraction * 100}% - var(--avatar-size) * ${fraction})`,
+                          zIndex: idx,
+                        }}
+                      >
+                        <UserAvatar
+                          name={participant}
+                          size="tiny"
+                          className="participant-badge"
+                          showTooltip={true}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                {totalParticipants > 0 && (
+                  <div className="day-vote-count">
+                    {day.participants.length}/{totalParticipants}
                   </div>
                 )}
               </div>
