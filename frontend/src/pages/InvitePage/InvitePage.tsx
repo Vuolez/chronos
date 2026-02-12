@@ -86,8 +86,8 @@ const InvitePage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="invite-page">
-        <div className="invite-container">
-          <div className="loading">
+        <div className="invite-content">
+          <div className="loading-spinner">
             <div className="spinner"></div>
             <p>Загрузка информации о встрече...</p>
           </div>
@@ -99,12 +99,14 @@ const InvitePage: React.FC = () => {
   if (error || !meetingData) {
     return (
       <div className="invite-page">
-        <div className="invite-container">
-          <div className="error">
-            <h2>❌ Ошибка</h2>
-            <p>{error || 'Встреча не найдена'}</p>
+        <div className="invite-content">
+          <div className="invite-header">
+            <h1>Ошибка</h1>
+          </div>
+          <div className="invite-card">
+            <p className="invite-error-text">{error || 'Встреча не найдена'}</p>
             <button 
-              className="home-btn"
+              className="invite-btn-secondary"
               onClick={() => navigate('/')}
             >
               На главную
@@ -117,51 +119,52 @@ const InvitePage: React.FC = () => {
 
   return (
     <div className="invite-page">
-      <div className="invite-container">
-        <div className="meeting-info">
-          <h1>Планирование встречи</h1>
+      <div className="invite-content">
+        <div className="invite-header">
+          <h1>Приглашение</h1>
+        </div>
+
+        <div className="invite-card">
+          <div className="invite-card-header">
+            <h3 className="invite-card-title">{meetingData.meeting.title}</h3>
+            <span className="invite-status">Планирование</span>
+          </div>
           
-          <div className="meeting-details">
-            <h2>{meetingData.meeting.title}</h2>
-            
-            {meetingData.meeting.createdBy && (
-              <div className="creator-info">
-                <p><strong>Организатор:</strong> {meetingData.meeting.createdBy.name}</p>
-              </div>
-            )}
+          {meetingData.meeting.createdBy && (
+            <div className="invite-card-meta">
+              Организатор: {meetingData.meeting.createdBy.name}
+            </div>
+          )}
+        </div>
 
-          </div>
-
-          <div className="join-section">
-            {currentUser ? (
-              <div className="user-join">
-                
-                <button 
-                  className="join-btn"
-                  onClick={handleJoinMeeting}
-                  disabled={isJoining}
-                >
-                  {isJoining ? '⏳ Присоединяемся...' : 'Присоединиться к планированию'}
-                </button>
-                
-                {error && (
-                  <p className="error-message">{error}</p>
-                )}
+        <div className="invite-actions">
+          {currentUser ? (
+            <>
+              <button 
+                className="invite-btn-primary"
+                onClick={handleJoinMeeting}
+                disabled={isJoining}
+              >
+                {isJoining ? 'Присоединяемся...' : 'Присоединиться к планированию'}
+              </button>
+              
+              {error && (
+                <div className="invite-error">{error}</div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="invite-card">
+                <p className="invite-login-text">Для участия во встрече необходимо войти в систему через Яндекс ID.</p>
               </div>
-            ) : (
-              <div className="guest-join">
-                <h3>🔐 Необходима авторизация</h3>
-                <p>Для участия во встрече необходимо войти в систему через Яндекс ID.</p>
-                
-                <button 
-                  className="login-btn"
-                  onClick={handleLogin}
-                >
-                  🚪 Войти через Яндекс ID
-                </button>
-              </div>
-            )}
-          </div>
+              <button 
+                className="invite-btn-primary"
+                onClick={handleLogin}
+              >
+                Войти через Яндекс ID
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -99,7 +99,10 @@ const HomePage: React.FC = () => {
     return (
       <div className="home-page">
         <div className="home-content">
-          <h1>⏳ Загрузка...</h1>
+          <div className="loading-spinner">
+            <div className="spinner"></div>
+            <p>Загрузка...</p>
+          </div>
         </div>
       </div>
     );
@@ -107,123 +110,134 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="home-page">
-      {/* Кнопка выхода в правом верхнем углу */}
-      <button 
-        className="logout-btn"
-        onClick={handleLogout}
-        title="Выйти из аккаунта"
-      >
-        Выйти
-      </button>
-
       <div className="home-content">
-        <div className="main-content">
-          <h2>Chronos</h2>
-          <p className="app-subtitle">Планирование встреч стало проще</p>
-          
-          {!showCreateForm ? (
-            <div className="home-buttons">
-              <button 
-                className="create-meeting-btn"
-                onClick={handleShowCreateForm}
-              >
-                Запланировать новую встречу
-              </button>
-              <button 
-                className="my-meetings-btn"
-                onClick={() => navigate('/my-meetings')}
-              >
-                Мои встречи
-              </button>
-            </div>
-          ) : (
-            <div className="create-meeting-form">
-              <form onSubmit={handleCreateMeeting}>
-                <div className="form-group">
-                  <label htmlFor="meetingTitle">Название встречи *</label>
-                  <input
-                    type="text"
-                    id="meetingTitle"
-                    value={meetingTitle}
-                    onChange={(e) => setMeetingTitle(e.target.value)}
-                    placeholder="Например: Команда планирование"
-                    required
-                    maxLength={255}
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label htmlFor="meetingDescription">Описание (опционально)</label>
-                  <textarea
-                    id="meetingDescription"
-                    value={meetingDescription}
-                    onChange={(e) => setMeetingDescription(e.target.value)}
-                    placeholder="Опишите цель встречи..."
-                    rows={3}
-                    maxLength={1000}
-                  />
-                </div>
-                
-                <div className="form-actions">
-                  <button 
-                    type="button" 
-                    className="cancel-btn"
-                    onClick={handleCancelCreate}
-                    disabled={isCreating}
-                  >
-                    Отмена
-                  </button>
-                  <button 
-                    type="submit" 
-                    className="submit-btn"
-                    disabled={isCreating}
-                  >
-                    {isCreating ? '⏳ Создаем...' : 'Создать встречу'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
+        <div className="home-header">
+          <h1>Chronos</h1>
+          <button 
+            className="logout-btn"
+            onClick={handleLogout}
+            title="Выйти из аккаунта"
+          >
+            Выйти
+          </button>
+        </div>
 
-          {/* Результат создания встречи */}
-          {createdMeeting && (
-            <div className="meeting-created">
-              <h3>Встреча успешно создана!</h3>
+        {!showCreateForm && !createdMeeting && (
+          <div className="home-actions">
+            <button 
+              className="action-card"
+              onClick={handleShowCreateForm}
+            >
+              <span className="action-card-title">Запланировать новую встречу</span>
+              <span className="action-card-description">Создайте встречу и пригласите участников</span>
+            </button>
+            <button 
+              className="action-card"
+              onClick={() => navigate('/my-meetings')}
+            >
+              <span className="action-card-title">Мои встречи</span>
+              <span className="action-card-description">Посмотреть список ваших встреч</span>
+            </button>
+          </div>
+        )}
+
+        {showCreateForm && (
+          <div className="create-form-card">
+            <h2>Создание встречи</h2>
+            <form onSubmit={handleCreateMeeting}>
+              <div className="form-group">
+                <label htmlFor="meetingTitle">Название встречи *</label>
+                <input
+                  type="text"
+                  id="meetingTitle"
+                  value={meetingTitle}
+                  onChange={(e) => setMeetingTitle(e.target.value)}
+                  placeholder="Например: Команда планирование"
+                  required
+                  maxLength={255}
+                  autoFocus
+                />
+              </div>
               
-              <div className="meeting-actions">
-                
-                <div className="invite-section">
-                  <p><strong>Ссылка для приглашения участников:</strong></p>
-                  <div className="invite-link">
-                    <input 
-                      type="text" 
-                      value={`${window.location.origin}/invite/${createdMeeting.shareToken}`}
-                      readOnly
-                      className="invite-url"
-                    />
-                    <button 
-                      className="copy-btn"
-                      onClick={() => {
-                        navigator.clipboard.writeText(`${window.location.origin}/invite/${createdMeeting.shareToken}`);
-                        alert('Ссылка скопирована!');
-                      }}
-                    >
-                      📋 Копировать
-                    </button>
-                  </div>
-                </div>
-
+              <div className="form-group">
+                <label htmlFor="meetingDescription">Описание (опционально)</label>
+                <textarea
+                  id="meetingDescription"
+                  value={meetingDescription}
+                  onChange={(e) => setMeetingDescription(e.target.value)}
+                  placeholder="Опишите цель встречи..."
+                  rows={3}
+                  maxLength={1000}
+                />
+              </div>
+              
+              <div className="form-actions">
                 <button 
-                  className="go-to-calendar-btn"
-                  onClick={() => navigate(`/meeting/${createdMeeting.shareToken}`)}
+                  type="button" 
+                  className="cancel-btn"
+                  onClick={handleCancelCreate}
+                  disabled={isCreating}
                 >
-                  Перейти к планированию
+                  Отмена
                 </button>
-                
+                <button 
+                  type="submit" 
+                  className="submit-btn"
+                  disabled={isCreating}
+                >
+                  {isCreating ? 'Создаем...' : 'Создать встречу'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Результат создания встречи */}
+        {createdMeeting && (
+          <div className="created-card">
+            <h2>Встреча создана</h2>
+            
+            <div className="invite-section">
+              <label>Ссылка для приглашения участников:</label>
+              <div className="invite-link">
+                <input 
+                  type="text" 
+                  value={`${window.location.origin}/invite/${createdMeeting.shareToken}`}
+                  readOnly
+                  className="invite-url"
+                />
+                <button 
+                  className="copy-btn"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/invite/${createdMeeting.shareToken}`);
+                    alert('Ссылка скопирована!');
+                  }}
+                >
+                  Копировать
+                </button>
               </div>
             </div>
-          )}
-        </div>
+
+            <div className="form-actions">
+              <button 
+                className="cancel-btn"
+                onClick={() => {
+                  setCreatedMeeting(null);
+                  setMeetingTitle('');
+                  setMeetingDescription('');
+                }}
+              >
+                Назад
+              </button>
+              <button 
+                className="submit-btn"
+                onClick={() => navigate(`/meeting/${createdMeeting.shareToken}`)}
+              >
+                Перейти к планированию
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
