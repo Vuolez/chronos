@@ -112,52 +112,18 @@ class ParticipantService(
     }
     
     /**
-     * Проверка, может ли пользователь изменять доступность участника (и голосовать от его имени).
+     * Проверка, может ли пользователь изменять доступность участника
      */
     fun canUserModifyParticipant(participantId: UUID, currentUser: User?): Boolean {
         val participant = getParticipantById(participantId) ?: return false
         
-        // Если пользователь не авторизован — может изменять только гостевых участников
+        // Если пользователь не авторизован - может изменять только гостевых участников
         if (currentUser == null) {
             return participant.userId == null
         }
         
-        // Участник уже привязан к пользователю — только он может его менять
-        if (participant.userId != null) {
-            return participant.userId == currentUser.id
-        }
-        
-        // Участник — гость (userId == null). Разрешаем, если:
-        // 1) email гостя совпадает с email текущего пользователя, или
-        // 2) у гостя нет email и он единственный гость во встрече (при первом голосе привяжем к пользователю).
-        if (participant.email != null &&
-            participant.email.equals(currentUser.email, ignoreCase = true)) {
-            return true
-        }
-        if (participant.email == null && countGuestsInMeeting(participant.meetingId) == 1) {
-            return true
-        }
-        
-        return false
-    }
-    
-    /**
-     * Количество участников-гостей (без привязки к пользователю) во встрече.
-     */
-    @Transactional(readOnly = true)
-    fun countGuestsInMeeting(meetingId: UUID): Int {
-        return participantRepository.findByMeetingId(meetingId).count { it.userId == null }
-    }
-    
-    /**
-     * Привязать участника-гостя к пользователю (при первом голосе/действии от имени гостя).
-     */
-    fun linkParticipantToUser(participantId: UUID, user: User): Participant? {
-        val participant = getParticipantById(participantId) ?: return null
-        if (participant.userId != null) return participant
-        participant.userId = user.id
-        participant.email = user.email
-        return participantRepository.save(participant)
+        // Авторизованный пользователь может изменять только своих участников
+        return participant.userId == currentUser.id
     }
     
     /**

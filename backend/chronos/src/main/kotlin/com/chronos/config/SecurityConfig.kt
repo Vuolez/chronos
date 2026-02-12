@@ -53,26 +53,24 @@ class SecurityConfig(
             .cors { it.configurationSource(corsConfigurationSource) }
             
             // Настройка авторизации запросов
-            // ВАЖНО: context-path = /api, поэтому в контейнере путь может быть без /api.
-            // Добавляем оба варианта чтобы работало и с полным путём (если прокси отдаёт полный URI).
             .authorizeHttpRequests { auth ->
                 auth
                     // ПУБЛИЧНЫЕ ENDPOINTS (без авторизации):
                     
                     // Авторизация - login и logout публичные, /me требует токен
-                    .requestMatchers("/auth/login", "/auth/logout", "/api/auth/login", "/api/auth/logout").permitAll()
-                    .requestMatchers("/auth/me", "/api/auth/me").authenticated()
+                    .requestMatchers("/auth/login", "/auth/logout").permitAll()
+                    .requestMatchers("/auth/me").authenticated()
                     
                     // Swagger UI - для разработки
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                     
                     // Actuator endpoints (health check и т.д.)
-                    .requestMatchers("/actuator/**", "/api/actuator/**").permitAll()
+                    .requestMatchers("/actuator/**").permitAll()
                     
                     // ВРЕМЕННО: Meetings пока публичные (потом изменим)
-                    .requestMatchers("/meetings/**", "/api/meetings/**").permitAll()
-                    .requestMatchers("/participants/**", "/api/participants/**").permitAll()
-                    .requestMatchers("/availability/**", "/api/availability/**").permitAll()
+                    .requestMatchers("/meetings/**").permitAll()
+                    .requestMatchers("/participants/**").permitAll()
+                    .requestMatchers("/availability/**").permitAll()
                     
                     // ВСЕ ОСТАЛЬНЫЕ ENDPOINTS требуют авторизации
                     .anyRequest().authenticated()

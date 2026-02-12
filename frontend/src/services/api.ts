@@ -59,10 +59,13 @@ apiClient.interceptors.response.use(
   (error) => {
     console.error('API Error:', error);
     
-    // Только 401 = не авторизован → редирект на /auth. 403 = нет прав → не редиректим.
+    // Если 401 - токен недействителен, перенаправляем на авторизацию
     if (error.response?.status === 401) {
+      // Удаляем недействительный токен
       localStorage.removeItem('jwt_token');
       localStorage.removeItem('ya_token');
+      
+      // Перенаправляем на страницу авторизации
       window.location.href = '/auth';
       return Promise.reject(new Error('Необходима авторизация'));
     }
@@ -73,11 +76,7 @@ apiClient.interceptors.response.use(
       throw new Error(apiError.message || 'Ошибка API');
     }
     
-    // Сообщения по коду для типичных случаев
-    if (error.response?.status === 403) {
-      return Promise.reject(new Error('Недостаточно прав для этого действия'));
-    }
-    
+    // Если сеть недоступна
     throw new Error('Ошибка сети. Проверьте подключение к серверу.');
   }
 );

@@ -32,16 +32,9 @@ class VoteController(
     ): ResponseEntity<VoteResponse> {
         val currentUser = SecurityUtils.getCurrentUser()
 
+        // Проверяем права доступа
         if (!participantService.canUserModifyParticipant(participantId, currentUser)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
-        }
-
-        // Если участник — гость, при первом действии привязываем его к текущему пользователю
-        if (currentUser != null) {
-            val participant = participantService.getParticipantById(participantId)
-            if (participant != null && participant.userId == null) {
-                participantService.linkParticipantToUser(participantId, currentUser)
-            }
         }
 
         val date = LocalDate.parse(request.date)
@@ -63,13 +56,6 @@ class VoteController(
 
         if (!participantService.canUserModifyParticipant(participantId, currentUser)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
-        }
-
-        if (currentUser != null) {
-            val participant = participantService.getParticipantById(participantId)
-            if (participant != null && participant.userId == null) {
-                participantService.linkParticipantToUser(participantId, currentUser)
-            }
         }
 
         val success = voteService.removeVote(participantId, meetingId)

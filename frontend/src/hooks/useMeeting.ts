@@ -336,16 +336,13 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     const isUnvoting = currentVote?.votedDate === date;
 
     if (isUnvoting) {
-      const currentVoteToRestore = state.votes.find(v => v.participantId === state.currentParticipantId);
+      // Отмена голоса — оптимистично убираем
       const updatedVotes = state.votes.filter(v => v.participantId !== state.currentParticipantId);
       updateState({ votes: updatedVotes });
 
+      // Отправляем на сервер
       meetingApi.removeVote(state.meeting.id, state.currentParticipantId).catch(err => {
         console.error('❌ Ошибка удаления голоса:', err);
-        updateState({
-          error: err instanceof Error ? err.message : 'Не удалось отменить голос',
-          votes: currentVoteToRestore ? [...updatedVotes, currentVoteToRestore] : updatedVotes
-        });
       });
     } else {
       // Голосуем / меняем голос — оптимистично обновляем
@@ -364,16 +361,13 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
 
       // Отправляем на сервер
       meetingApi.castVote(state.meeting.id, state.currentParticipantId, date).then(realVote => {
+        // Заменяем оптимистичный голос реальным
         setState(prev => ({
           ...prev,
           votes: prev.votes.map(v => v.id === optimisticVote.id ? realVote : v)
         }));
       }).catch(err => {
         console.error('❌ Ошибка голосования:', err);
-        updateState({
-          error: err instanceof Error ? err.message : 'Не удалось проголосовать',
-          votes: state.votes.filter(v => v.id !== optimisticVote.id) // откат оптимистичного обновления
-        });
       });
     }
   }, [state.meeting, state.currentParticipantId, state.votes, updateState]);
