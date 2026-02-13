@@ -122,7 +122,7 @@
 }
 
 .calendar-day.selected .day-number {
-  color: #4338ca !important;
+  color: #333 !important;
   font-weight: 600;
 }
 
@@ -131,8 +131,8 @@
 }
 
 .calendar-day.today .day-number {
-  background: #667eea;
-  color: white;
+  background: #e0e7ff;
+  color: #333;
   width: 24px;
   height: 24px;
   border-radius: 50%;
@@ -149,33 +149,35 @@
 }
 
 .calendar-day.selected.today .day-number {
-  background: rgba(67, 56, 202, 0.25);
+  background: #e0e7ff;
+  color: #333 !important;
 }
 
-/* День, за который проголосовали все участники */
+/* День, за который проголосовали все участники — тот же зелёный, что и финальный день */
 .calendar-day.all-voted {
-  background: #bbf7d0 !important;
+  background: #e8f5e9 !important;
 }
 
 .calendar-day.all-voted .day-number {
-  color: #15803d !important;
+  color: #333 !important;
   font-weight: 600;
 }
 
 .calendar-day.all-voted:hover {
-  background: #86efac !important;
+  background: #c8e6c9 !important;
 }
 
 .calendar-day.all-voted .day-vote-count {
-  color: #166534;
+  color: #333;
 }
 
 .calendar-day.all-voted .participants-avatars .user-avatar {
-  box-shadow: 0 0 0 1.5px rgba(21, 128, 61, 0.3);
+  box-shadow: 0 0 0 1.5px rgba(46, 125, 50, 0.4);
 }
 
 .calendar-day.all-voted.today .day-number {
-  background: rgba(21, 128, 61, 0.2);
+  background: #c8e6c9;
+  color: #333 !important;
 }
 
 /* Область участников в ячейке дня */
@@ -237,7 +239,7 @@
 }
 
 .calendar-day.selected .day-vote-count {
-  color: rgba(255, 255, 255, 0.85);
+  color: #333;
 }
 
 /* Адаптивность */
