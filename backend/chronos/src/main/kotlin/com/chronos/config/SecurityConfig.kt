@@ -85,12 +85,10 @@ class SecurityConfig(
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
             
-            // Логирование запросов (для отладки)
-            .addFilterBefore(requestLoggingFilter, JwtAuthenticationFilter::class.java)
-            // Подключаем наш JWT фильтр
-            // ВАЖНО: добавляем ЕГО ДО стандартного фильтра авторизации
-            // Так наш фильтр успеет обработать JWT токен
+            // Оба фильтра добавляем перед UsernamePasswordAuthenticationFilter (у него есть order)
+            // Порядок: RequestLogging -> JWT -> UsernamePasswordAuth
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .addFilterBefore(requestLoggingFilter, UsernamePasswordAuthenticationFilter::class.java)
             
             // Строим конфигурацию
             .build()
