@@ -2,7 +2,7 @@
 // Централизует всю логику работы с API
 
 import { useState, useCallback, useRef } from 'react';
-import { meetingApi } from '../services';
+import { meetingApi, authApi } from '../services';
 import { 
   Meeting, 
   MeetingDetail, 
@@ -411,14 +411,41 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
       // Обновляем только если данные изменились
       if (newDataHash !== currentDataHash) {
         console.log('🔄 Обновление данных встречи (изменения обнаружены)');
-        
-        // Сохраняем текущие selectedDates и currentParticipantId
+
+        // Синхронизация: если проголосовали с другого устройства — показать выбранный день
+        let newCurrentParticipantId = state.currentParticipantId;
+        let newSelectedDates = state.selectedDates;
+        try {
+          const currentUser = await authApi.getCurrentUser();
+          const myParticipantIds = meetingDetail.participants
+            .filter((p) => p.user?.id === currentUser.id)
+            .map((p) => p.id);
+          const myVote = votesToCompare.find((v) =>
+            myParticipantIds.includes(v.participantId)
+          );
+          if (
+            myVote &&
+            (!state.currentParticipantId ||
+              state.currentParticipantId !== myVote.participantId)
+          ) {
+            newCurrentParticipantId = myVote.participantId;
+            // Восстанавливаем selectedDates для этого участника из availabilities
+            newSelectedDates = meetingDetail.availabilities
+              .filter((a) => a.participantId === myVote.participantId)
+              .map((a) => a.date);
+          }
+        } catch {
+          // Пользователь не авторизован — пропускаем синхронизацию
+        }
+
         updateState({
           meeting: meetingDetail.meeting,
           participants: meetingDetail.participants,
           availabilities: meetingDetail.availabilities,
           commonDates: meetingDetail.commonAvailableDates,
           votes: votesToCompare,
+          currentParticipantId: newCurrentParticipantId,
+          selectedDates: newSelectedDates,
         });
       } else {
         console.log('✅ Данные встречи актуальны');
@@ -427,7 +454,7 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
       console.warn('⚠️ Ошибка автообновления:', error);
       // Не показываем ошибку пользователю для автообновления
     }
-  }, [state.participants, state.availabilities, state.commonDates, state.votes, updateState]);
+  }, [state.participants, state.availabilities, state.commonDates, state.votes, state.currentParticipantId, state.selectedDates, updateState]);
 
   // Запуск автообновления
   const startAutoRefresh = useCallback((shareToken: string, intervalMs: number = 5000) => {
