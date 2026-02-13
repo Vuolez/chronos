@@ -429,9 +429,14 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
               state.currentParticipantId !== myVote.participantId)
           ) {
             newCurrentParticipantId = myVote.participantId;
-            // Восстанавливаем selectedDates для этого участника из availabilities
+          }
+          // Всегда синхронизируем selectedDates с availabilities текущего участника,
+          // чтобы визуал календаря (синий/зелёный) обновлялся при изменениях с другого устройства
+          const participantIdToSync =
+            newCurrentParticipantId ?? state.currentParticipantId;
+          if (participantIdToSync) {
             newSelectedDates = meetingDetail.availabilities
-              .filter((a) => a.participantId === myVote.participantId)
+              .filter((a) => a.participantId === participantIdToSync)
               .map((a) => a.date);
           }
         } catch {
