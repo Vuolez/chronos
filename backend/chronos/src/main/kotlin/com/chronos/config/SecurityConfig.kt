@@ -30,6 +30,7 @@ import org.springframework.web.cors.CorsConfigurationSource
 @EnableWebSecurity
 class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
+    private val requestLoggingFilter: RequestLoggingFilter,
     @Qualifier("corsConfigurationSource") private val corsConfigurationSource: CorsConfigurationSource
 ) {
 
@@ -68,7 +69,8 @@ class SecurityConfig(
                     .requestMatchers("/actuator/**").permitAll()
                     
                     // ВРЕМЕННО: Meetings пока публичные (потом изменим)
-                    .requestMatchers("/meetings/**").permitAll()
+                    // Явно разрешаем votes — при context-path /api путь может быть /api/meetings/...
+                    .requestMatchers("/api/meetings/**", "/meetings/**").permitAll()
                     .requestMatchers("/participants/**").permitAll()
                     .requestMatchers("/availability/**").permitAll()
                     
@@ -83,6 +85,8 @@ class SecurityConfig(
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
             
+            // Логирование запросов (для отладки)
+            .addFilterBefore(requestLoggingFilter, JwtAuthenticationFilter::class.java)
             // Подключаем наш JWT фильтр
             // ВАЖНО: добавляем ЕГО ДО стандартного фильтра авторизации
             // Так наш фильтр успеет обработать JWT токен

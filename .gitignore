@@ -153,5 +153,5 @@ temp/
 ssl-certs/
 
 
-### Confidential files ###
+### Local files ###
 local/
