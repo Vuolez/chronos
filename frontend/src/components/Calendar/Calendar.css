@@ -118,16 +118,16 @@
 }
 
 .calendar-day.selected {
-  background: #667eea !important;
+  background: #c7d2fe !important;
 }
 
 .calendar-day.selected .day-number {
-  color: white !important;
+  color: #4338ca !important;
   font-weight: 600;
 }
 
 .calendar-day.selected:hover {
-  background: #5a6fd8 !important;
+  background: #a5b4fc !important;
 }
 
 .calendar-day.today .day-number {
@@ -149,33 +149,33 @@
 }
 
 .calendar-day.selected.today .day-number {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(67, 56, 202, 0.25);
 }
 
 /* День, за который проголосовали все участники */
 .calendar-day.all-voted {
-  background: #4caf50 !important;
+  background: #bbf7d0 !important;
 }
 
 .calendar-day.all-voted .day-number {
-  color: white !important;
+  color: #15803d !important;
   font-weight: 600;
 }
 
 .calendar-day.all-voted:hover {
-  background: #43a047 !important;
+  background: #86efac !important;
 }
 
 .calendar-day.all-voted .day-vote-count {
-  color: rgba(255, 255, 255, 0.85);
+  color: #166534;
 }
 
 .calendar-day.all-voted .participants-avatars .user-avatar {
-  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 0 1.5px rgba(21, 128, 61, 0.3);
 }
 
 .calendar-day.all-voted.today .day-number {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(21, 128, 61, 0.2);
 }
 
 /* Область участников в ячейке дня */
