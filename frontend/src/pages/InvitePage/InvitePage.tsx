@@ -67,8 +67,8 @@ const InvitePage: React.FC = () => {
         email: currentUser.email
       });
 
-      // Перенаправляем на страницу планирования
-      navigate(`/meeting/${shareToken}`, { replace: true });
+      // Перенаправляем на страницу планирования (state: justJoined — пропустить проверку в MeetingRouter)
+      navigate(`/meeting/${shareToken}`, { replace: true, state: { justJoined: true } });
 
     } catch (err) {
       console.error('Ошибка присоединения к встрече:', err);
