@@ -247,12 +247,16 @@ const MeetingPage: React.FC = () => {
           <ParticipantsList
             participants={participants}
             currentParticipantId={currentParticipantId}
+            inviteUrl={shareToken ? `${window.location.origin}/meeting/${shareToken}` : undefined}
           />
         </div>
 
         {/* Центральная панель - календарь */}
         <div className="calendar-panel">
-          <Instructions variant="mobile" />
+          <Instructions
+            variant="mobile"
+            inviteUrl={shareToken ? `${window.location.origin}/meeting/${shareToken}` : undefined}
+          />
           <Calendar
             selectedDates={selectedDates}
             onDateClick={toggleDateSelection}

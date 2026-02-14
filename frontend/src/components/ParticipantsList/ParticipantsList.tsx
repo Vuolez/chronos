@@ -10,11 +10,13 @@ import './ParticipantsList.css';
 interface ParticipantsListProps {
   participants: Participant[];              // Список участников
   currentParticipantId?: string | null;     // ID текущего участника (если есть)
+  inviteUrl?: string;                       // Ссылка для приглашения участников
 }
 
 const ParticipantsList: React.FC<ParticipantsListProps> = ({
   participants,
-  currentParticipantId
+  currentParticipantId,
+  inviteUrl
 }) => {
 
   // Получение текста статуса на русском
@@ -71,7 +73,7 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
         )}
       </div>
 
-      <Instructions variant="sidebar" />
+      <Instructions variant="sidebar" inviteUrl={inviteUrl} />
     </div>
   );
 };

@@ -16,6 +16,29 @@
   line-height: 1.4;
 }
 
+/* Кнопка приглашения */
+.instructions-invite-btn {
+  width: 100%;
+  margin-top: 16px;
+  padding: 10px 16px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.instructions-invite-btn:hover {
+  background: #5a6fd8;
+}
+
+.instructions-invite-btn:active {
+  background: #4c63c7;
+}
+
 /* Вариант: боковая панель (десктоп) */
 .instructions--sidebar {
   border-top: 1px solid #e5e5e5;
