@@ -1,7 +1,6 @@
 package com.chronos.service
 
 import com.chronos.entity.Availability
-import com.chronos.entity.ParticipantStatus
 import com.chronos.repository.AvailabilityRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -13,7 +12,8 @@ import java.util.*
 @Transactional
 class AvailabilityService(
     private val availabilityRepository: AvailabilityRepository,
-    private val participantService: ParticipantService
+    private val participantService: ParticipantService,
+    private val participantStatusService: ParticipantStatusService
 ) {
     
     /**
@@ -40,10 +40,7 @@ class AvailabilityService(
         )
         
         val savedAvailability = availabilityRepository.save(availability)
-        
-        // Обновляем статус участника на "Проголосовал" после добавления доступности
-        participantService.updateParticipantStatus(participantId, ParticipantStatus.VOTED)
-        
+        participantStatusService.recalculateParticipantStatuses(meetingId)
         return savedAvailability
     }
     
@@ -95,6 +92,7 @@ class AvailabilityService(
         
         return if (availabilityToRemove != null) {
             availabilityRepository.delete(availabilityToRemove)
+            participantStatusService.recalculateParticipantStatuses(meetingId)
             true
         } else {
             false

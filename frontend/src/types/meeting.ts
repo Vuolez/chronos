@@ -12,6 +12,7 @@ export enum MeetingStatus {
 
 export enum ParticipantStatus {
   THINKING = 'THINKING',
+  CHOOSEN_DATE = 'CHOOSEN_DATE',
   VOTED = 'VOTED'
 }
 

@@ -98,6 +98,11 @@
   color: #856404;
 }
 
+.participant-status.chosen-date {
+  background: #cce5ff;
+  color: #004085;
+}
+
 .participant-status.voted {
   background: #d4edda;
   color: #155724;

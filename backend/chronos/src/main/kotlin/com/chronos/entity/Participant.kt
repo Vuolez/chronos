@@ -41,5 +41,7 @@ data class Participant(
 }
 
 enum class ParticipantStatus {
-    THINKING, VOTED
+    THINKING,      // нет выбранных дат
+    CHOOSEN_DATE,  // выбрал хотя бы одну дату
+    VOTED          // проголосовал за финальную дату
 }

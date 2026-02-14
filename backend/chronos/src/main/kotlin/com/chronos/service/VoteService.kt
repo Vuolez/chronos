@@ -11,7 +11,7 @@ import java.util.*
 @Transactional
 class VoteService(
     private val voteRepository: VoteRepository,
-    private val participantService: ParticipantService
+    private val participantStatusService: ParticipantStatusService
 ) {
 
     /**
@@ -28,8 +28,9 @@ class VoteService(
             meetingId = meetingId,
             votedDate = date
         )
-
-        return voteRepository.save(vote)
+        val saved = voteRepository.save(vote)
+        participantStatusService.recalculateParticipantStatuses(meetingId)
+        return saved
     }
 
     /**
@@ -39,6 +40,7 @@ class VoteService(
         val existing = voteRepository.findByParticipantIdAndMeetingId(participantId, meetingId)
         return if (existing != null) {
             voteRepository.delete(existing)
+            participantStatusService.recalculateParticipantStatuses(meetingId)
             true
         } else {
             false

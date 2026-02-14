@@ -692,11 +692,13 @@ components:
       type: string
       enum:
         - THINKING
+        - CHOOSEN_DATE
         - VOTED
       description: |
         Статус участника:
-        * THINKING - Думает над доступностью
-        * VOTED - Проголосовал (указал доступность)
+        * THINKING - Думает над доступностью (нет выбранных дат)
+        * CHOOSEN_DATE - Выбрал хотя бы одну дату
+        * VOTED - Проголосовал за финальную дату
 
     ParticipationInfo:
       type: object

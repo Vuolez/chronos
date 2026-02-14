@@ -21,12 +21,22 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
 
   // Получение текста статуса на русском
   const getStatusText = (status: ParticipantStatus): string => {
-    return status === ParticipantStatus.THINKING ? 'Думает' : 'Проголосовал';
+    switch (status) {
+      case ParticipantStatus.THINKING: return 'Думает';
+      case ParticipantStatus.CHOOSEN_DATE: return 'Выбрал даты';
+      case ParticipantStatus.VOTED: return 'Проголосовал';
+      default: return 'Думает';
+    }
   };
 
   // Получение CSS класса для статуса
   const getStatusClass = (status: ParticipantStatus): string => {
-    return status === ParticipantStatus.THINKING ? 'thinking' : 'voted';
+    switch (status) {
+      case ParticipantStatus.THINKING: return 'thinking';
+      case ParticipantStatus.CHOOSEN_DATE: return 'chosen-date';
+      case ParticipantStatus.VOTED: return 'voted';
+      default: return 'thinking';
+    }
   };
 
   return (

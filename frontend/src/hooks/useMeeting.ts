@@ -11,8 +11,7 @@ import {
   Vote,
   CreateMeetingRequest,
   AddParticipantRequest,
-  UpdateAvailabilityRequest,
-  ParticipantStatus
+  UpdateAvailabilityRequest
 } from '../types';
 
 interface UseMeetingState {
@@ -200,22 +199,14 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
       
       console.log('✅ Получены новые availabilities:', newAvailabilities);
       
-      // Обновляем локальное состояние
+      // Обновляем локальное состояние (статусы участников придут при следующем refresh)
       const updatedAvailabilities = [
         ...state.availabilities,
         ...newAvailabilities
       ];
-      
-      // Обновляем статус участника
-      const updatedParticipants = state.participants.map(p => 
-        p.id === participantId 
-          ? { ...p, status: ParticipantStatus.VOTED }
-          : p
-      );
 
       updateState({
         availabilities: updatedAvailabilities,
-        participants: updatedParticipants,
         isLoading: false
       });
       
