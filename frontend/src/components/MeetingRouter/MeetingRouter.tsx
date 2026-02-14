@@ -2,14 +2,14 @@
 // Решает куда направить пользователя: в календарь или на страницу приглашения
 
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { meetingApi, authApi } from '../../services/api';
 import MeetingPage from '../../pages/MeetingPage';
 import InvitePage from '../../pages/InvitePage';
 
 const MeetingRouter: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { shareToken } = useParams<{ shareToken: string }>();
   
   const [isLoading, setIsLoading] = useState(true);
@@ -29,9 +29,8 @@ const MeetingRouter: React.FC = () => {
       try {
         setIsLoading(true);
         
-        // Если только что присоединились — сразу показываем календарь (без повторной проверки)
-        const justJoined = (location.state as { justJoined?: boolean })?.justJoined;
-        if (justJoined) {
+        // Если только что присоединились (?joined=1) — сразу показываем календарь
+        if (searchParams.get('joined') === '1') {
           setShouldShowInvite(false);
           setIsLoading(false);
           return;
@@ -90,7 +89,7 @@ const MeetingRouter: React.FC = () => {
     };
 
     checkAccess();
-  }, [shareToken]);
+  }, [shareToken, searchParams]);
 
   if (isLoading) {
     return (
