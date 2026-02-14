@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Calendar from '../../components/Calendar';
+import Instructions from '../../components/Instructions';
 import ParticipantsList from '../../components/ParticipantsList';
 import { useMeeting } from '../../hooks';
 import { authApi } from '../../services/api';
@@ -251,6 +252,7 @@ const MeetingPage: React.FC = () => {
 
         {/* Центральная панель - календарь */}
         <div className="calendar-panel">
+          <Instructions variant="mobile" />
           <Calendar
             selectedDates={selectedDates}
             onDateClick={toggleDateSelection}

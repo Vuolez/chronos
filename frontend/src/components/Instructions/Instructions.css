@@ -1,0 +1,61 @@
+/* Общие стили инструкции */
+.instructions h4 {
+  margin: 0 0 12px 0;
+  color: #333;
+  font-weight: 600;
+}
+
+.instructions ol {
+  margin: 0;
+  padding-left: 20px;
+  color: #666;
+}
+
+.instructions li {
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+/* Вариант: боковая панель (десктоп) */
+.instructions--sidebar {
+  border-top: 1px solid #e5e5e5;
+  padding-top: 20px;
+}
+
+.instructions--sidebar h4 {
+  font-size: 0.9rem;
+}
+
+.instructions--sidebar li {
+  font-size: 0.8rem;
+}
+
+/* Вариант: над календарём (мобильные) */
+.instructions--mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .instructions--sidebar {
+    display: none;
+  }
+
+  .instructions--mobile {
+    display: block;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e5e5e5;
+  }
+
+  .instructions--mobile h4 {
+    font-size: 0.95rem;
+  }
+
+  .instructions--mobile li {
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+  }
+}

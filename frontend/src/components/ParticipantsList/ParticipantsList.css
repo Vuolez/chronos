@@ -213,31 +213,6 @@
   background: #e8e8e8;
 }
 
-/* Инструкция */
-.instructions {
-  border-top: 1px solid #e5e5e5;
-  padding-top: 20px;
-}
-
-.instructions h4 {
-  margin: 0 0 12px 0;
-  color: #333;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.instructions ol {
-  margin: 0;
-  padding-left: 20px;
-  color: #666;
-}
-
-.instructions li {
-  font-size: 0.8rem;
-  margin-bottom: 4px;
-  line-height: 1.4;
-}
-
 /* Адаптивность */
 @media (max-width: 768px) {
   .participants-list {
@@ -250,9 +225,5 @@
     width: 36px;
     height: 36px;
     font-size: 1rem;
-  }
-  
-  .instructions {
-    display: none; /* Скрываем на мобильных */
   }
 }

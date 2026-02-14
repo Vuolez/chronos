@@ -4,6 +4,7 @@
 import React from 'react';
 import { Participant, ParticipantStatus } from '../../types';
 import UserAvatar from '../UserAvatar';
+import Instructions from '../Instructions';
 import './ParticipantsList.css';
 
 interface ParticipantsListProps {
@@ -70,16 +71,7 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
         )}
       </div>
 
-      {/* Инструкция */}
-      <div className="instructions">
-        <h4>Как это работает:</h4>
-        <ol>
-          <li>Выберите подходящие вам даты</li>
-          <li>Статус изменится на "Проголосовал"</li>
-          <li>Другие участники также выбирают даты</li>
-          <li>Система найдет общие удобные даты</li>
-        </ol>
-      </div>
+      <Instructions variant="sidebar" />
     </div>
   );
 };
