@@ -63,9 +63,12 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
   // Ref для автообновления
   const autoRefreshInterval = useRef<NodeJS.Timeout | null>(null);
 
-  // Обновление состояния
-  const updateState = useCallback((updates: Partial<UseMeetingState>) => {
-    setState(prev => ({ ...prev, ...updates }));
+  // Обновление состояния (поддерживает функциональные обновления для актуального state)
+  const updateState = useCallback((updates: Partial<UseMeetingState> | ((prev: UseMeetingState) => Partial<UseMeetingState>)) => {
+    setState(prev => {
+      const resolved = typeof updates === 'function' ? updates(prev) : updates;
+      return { ...prev, ...resolved };
+    });
   }, []);
 
   // Создание новой встречи
@@ -236,30 +239,28 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
       
       console.log('✅ Получены новые availabilities:', newAvailabilities);
       
-      const updatedAvailabilities = [
-        ...state.availabilities,
-        ...newAvailabilities
-      ];
-      const newCommonDates = computeCommonDates(updatedAvailabilities, state.participants);
-      const updatedParticipants = state.participants.map(p => {
-        if (p.id !== participantId) return p;
-        const newStatus = computeParticipantStatus(
-          p.id,
-          updatedAvailabilities,
-          state.votes,
-          newCommonDates
-        );
-        return { ...p, status: newStatus };
-      });
-
-      updateState({
-        availabilities: updatedAvailabilities,
-        commonDates: newCommonDates,
-        participants: updatedParticipants,
-        isLoading: false
+      updateState(prev => {
+        const updatedAvailabilities = [...prev.availabilities, ...newAvailabilities];
+        const newCommonDates = computeCommonDates(updatedAvailabilities, prev.participants);
+        const updatedParticipants = prev.participants.map(p => {
+          if (p.id !== participantId) return p;
+          const newStatus = computeParticipantStatus(
+            p.id,
+            updatedAvailabilities,
+            prev.votes,
+            newCommonDates
+          );
+          return { ...p, status: newStatus };
+        });
+        return {
+          availabilities: updatedAvailabilities,
+          commonDates: newCommonDates,
+          participants: updatedParticipants,
+          isLoading: false
+        };
       });
       
-      console.log('💾 Состояние обновлено, availabilities:', updatedAvailabilities.length);
+      console.log('💾 Состояние обновлено, availabilities:', newAvailabilities.length, 'добавлено');
       return true;
     } catch (error) {
       updateState({ 
@@ -291,30 +292,31 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     try {
       await meetingApi.removeAvailability(state.meeting.id, participantId, date);
       
-      const updatedAvailabilities = state.availabilities.filter(
-        a => !(a.participantId === participantId && a.date === date)
-      );
-      const newCommonDates = computeCommonDates(updatedAvailabilities, state.participants);
-      const updatedParticipants = state.participants.map(p => {
-        if (p.id !== participantId) return p;
-        const newStatus = computeParticipantStatus(
-          p.id,
-          updatedAvailabilities,
-          state.votes,
-          newCommonDates
+      updateState(prev => {
+        const updatedAvailabilities = prev.availabilities.filter(
+          a => !(a.participantId === participantId && a.date === date)
         );
-        return { ...p, status: newStatus };
-      });
-
-      updateState({
-        availabilities: updatedAvailabilities,
-        commonDates: newCommonDates,
-        participants: updatedParticipants
+        const newCommonDates = computeCommonDates(updatedAvailabilities, prev.participants);
+        const updatedParticipants = prev.participants.map(p => {
+          if (p.id !== participantId) return p;
+          const newStatus = computeParticipantStatus(
+            p.id,
+            updatedAvailabilities,
+            prev.votes,
+            newCommonDates
+          );
+          return { ...p, status: newStatus };
+        });
+        return {
+          availabilities: updatedAvailabilities,
+          commonDates: newCommonDates,
+          participants: updatedParticipants
+        };
       });
     } catch (error) {
       console.error('❌ Ошибка удаления доступности:', error);
     }
-  }, [state.meeting, state.availabilities, state.participants, state.votes, updateState, computeCommonDates, computeParticipantStatus]);
+  }, [state.meeting, updateState, computeCommonDates, computeParticipantStatus]);
 
   // Переключение выбора даты
   const toggleDateSelection = useCallback((date: string) => {
@@ -385,34 +387,37 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     const currentVote = state.votes.find(v => v.participantId === state.currentParticipantId);
     const isUnvoting = currentVote?.votedDate === date;
 
+    const participantId = state.currentParticipantId;
     if (isUnvoting) {
-      const updatedVotes = state.votes.filter(v => v.participantId !== state.currentParticipantId);
-      const updatedParticipants = state.participants.map(p =>
-        p.id === state.currentParticipantId ? { ...p, status: ParticipantStatus.CHOOSEN_DATE } : p
-      );
-      updateState({ votes: updatedVotes, participants: updatedParticipants });
+      updateState(prev => ({
+        votes: prev.votes.filter(v => v.participantId !== participantId),
+        participants: prev.participants.map(p =>
+          p.id === participantId ? { ...p, status: ParticipantStatus.CHOOSEN_DATE } : p
+        )
+      }));
 
-      meetingApi.removeVote(state.meeting.id, state.currentParticipantId).catch(err => {
+      meetingApi.removeVote(state.meeting.id, participantId).catch(err => {
         console.error('❌ Ошибка удаления голоса:', err);
       });
     } else {
       const optimisticVote: Vote = {
         id: `optimistic-${Date.now()}`,
-        participantId: state.currentParticipantId,
+        participantId,
         meetingId: state.meeting.id,
         votedDate: date,
         createdAt: new Date().toISOString()
       };
-      const updatedVotes = [
-        ...state.votes.filter(v => v.participantId !== state.currentParticipantId),
-        optimisticVote
-      ];
-      const updatedParticipants = state.participants.map(p =>
-        p.id === state.currentParticipantId ? { ...p, status: ParticipantStatus.VOTED } : p
-      );
-      updateState({ votes: updatedVotes, participants: updatedParticipants });
+      updateState(prev => ({
+        votes: [
+          ...prev.votes.filter(v => v.participantId !== participantId),
+          optimisticVote
+        ],
+        participants: prev.participants.map(p =>
+          p.id === participantId ? { ...p, status: ParticipantStatus.VOTED } : p
+        )
+      }));
 
-      meetingApi.castVote(state.meeting.id, state.currentParticipantId, date).then(realVote => {
+      meetingApi.castVote(state.meeting.id, participantId, date).then(realVote => {
         setState(prev => ({
           ...prev,
           votes: prev.votes.map(v => v.id === optimisticVote.id ? realVote : v)
@@ -444,16 +449,16 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
       // Используем загруженные голоса или текущие (если загрузка не удалась)
       const votesToCompare = newVotes ?? state.votes;
 
-      // Сравниваем хэш данных чтобы обновлять только при изменениях
+      // Сравниваем хэш данных чтобы обновлять только при изменениях (включая status участников)
       const newDataHash = JSON.stringify({
-        participants: meetingDetail.participants.map(p => ({ id: p.id, name: p.name, isAuthenticated: p.isAuthenticated })),
+        participants: meetingDetail.participants.map(p => ({ id: p.id, name: p.name, status: p.status, isAuthenticated: p.isAuthenticated })),
         availabilities: meetingDetail.availabilities.map(a => ({ participantId: a.participantId, date: a.date })),
         commonDates: meetingDetail.commonAvailableDates,
         votes: votesToCompare.map(v => ({ participantId: v.participantId, votedDate: v.votedDate }))
       });
       
       const currentDataHash = JSON.stringify({
-        participants: state.participants.map(p => ({ id: p.id, name: p.name, isAuthenticated: p.isAuthenticated })),
+        participants: state.participants.map(p => ({ id: p.id, name: p.name, status: p.status, isAuthenticated: p.isAuthenticated })),
         availabilities: state.availabilities.map(a => ({ participantId: a.participantId, date: a.date })),
         commonDates: state.commonDates,
         votes: state.votes.map(v => ({ participantId: v.participantId, votedDate: v.votedDate }))
