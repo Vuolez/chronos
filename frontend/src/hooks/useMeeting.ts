@@ -11,7 +11,8 @@ import {
   Vote,
   CreateMeetingRequest,
   AddParticipantRequest,
-  UpdateAvailabilityRequest
+  UpdateAvailabilityRequest,
+  ParticipantStatus
 } from '../types';
 
 interface UseMeetingState {
@@ -160,6 +161,42 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     }
   }, [state.meeting, state.participants, updateState]);
 
+  // Вычисление статуса участника по availabilities, votes и commonDates
+  const computeParticipantStatus = useCallback((
+    participantId: string,
+    availabilities: { participantId: string; date: string }[],
+    votes: { participantId: string; votedDate: string }[],
+    commonDates: string[]
+  ): ParticipantStatus => {
+    const participantAvailabilities = availabilities.filter(a => a.participantId === participantId);
+    const participantVote = votes.find(v => v.participantId === participantId);
+
+    if (participantAvailabilities.length === 0) return ParticipantStatus.THINKING;
+    if (participantVote && commonDates.includes(participantVote.votedDate)) return ParticipantStatus.VOTED;
+    return ParticipantStatus.CHOOSEN_DATE;
+  }, []);
+
+  // Вычисление общих дат из availabilities
+  const computeCommonDates = useCallback((
+    availabilities: { participantId: string; date: string }[],
+    participants: Participant[]
+  ): string[] => {
+    if (participants.length === 0) return [];
+
+    const dateParticipants = new Map<string, Set<string>>();
+    for (const a of availabilities) {
+      if (!dateParticipants.has(a.date)) {
+        dateParticipants.set(a.date, new Set());
+      }
+      dateParticipants.get(a.date)!.add(a.participantId);
+    }
+
+    return Array.from(dateParticipants.entries())
+      .filter(([, pIds]) => pIds.size === participants.length)
+      .map(([date]) => date)
+      .sort();
+  }, []);
+
   // Обновление доступности участника
   const updateAvailability = useCallback(async (participantId: string, dates: string[]): Promise<boolean> => {
     console.log('🔄 updateAvailability: участник =', participantId, 'даты =', dates);
@@ -199,14 +236,26 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
       
       console.log('✅ Получены новые availabilities:', newAvailabilities);
       
-      // Обновляем локальное состояние (статусы участников придут при следующем refresh)
       const updatedAvailabilities = [
         ...state.availabilities,
         ...newAvailabilities
       ];
+      const newCommonDates = computeCommonDates(updatedAvailabilities, state.participants);
+      const updatedParticipants = state.participants.map(p => {
+        if (p.id !== participantId) return p;
+        const newStatus = computeParticipantStatus(
+          p.id,
+          updatedAvailabilities,
+          state.votes,
+          newCommonDates
+        );
+        return { ...p, status: newStatus };
+      });
 
       updateState({
         availabilities: updatedAvailabilities,
+        commonDates: newCommonDates,
+        participants: updatedParticipants,
         isLoading: false
       });
       
@@ -219,7 +268,7 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
       });
       return false;
     }
-  }, [state.meeting, state.participants, state.availabilities, updateState]);
+  }, [state.meeting, state.participants, state.availabilities, state.votes, updateState, computeCommonDates, computeParticipantStatus]);
 
   // Установка текущего участника
   const setCurrentParticipant = useCallback((participantId: string) => {
@@ -242,36 +291,30 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     try {
       await meetingApi.removeAvailability(state.meeting.id, participantId, date);
       
-      // Убираем удалённую доступность из локального состояния
       const updatedAvailabilities = state.availabilities.filter(
         a => !(a.participantId === participantId && a.date === date)
       );
-      updateState({ availabilities: updatedAvailabilities });
+      const newCommonDates = computeCommonDates(updatedAvailabilities, state.participants);
+      const updatedParticipants = state.participants.map(p => {
+        if (p.id !== participantId) return p;
+        const newStatus = computeParticipantStatus(
+          p.id,
+          updatedAvailabilities,
+          state.votes,
+          newCommonDates
+        );
+        return { ...p, status: newStatus };
+      });
+
+      updateState({
+        availabilities: updatedAvailabilities,
+        commonDates: newCommonDates,
+        participants: updatedParticipants
+      });
     } catch (error) {
       console.error('❌ Ошибка удаления доступности:', error);
     }
-  }, [state.meeting, state.availabilities, updateState]);
-
-  // Вычисление общих дат из availabilities
-  const computeCommonDates = useCallback((
-    availabilities: { participantId: string; date: string }[],
-    participants: Participant[]
-  ): string[] => {
-    if (participants.length === 0) return [];
-
-    const dateParticipants = new Map<string, Set<string>>();
-    for (const a of availabilities) {
-      if (!dateParticipants.has(a.date)) {
-        dateParticipants.set(a.date, new Set());
-      }
-      dateParticipants.get(a.date)!.add(a.participantId);
-    }
-
-    return Array.from(dateParticipants.entries())
-      .filter(([, pIds]) => pIds.size === participants.length)
-      .map(([date]) => date)
-      .sort();
-  }, []);
+  }, [state.meeting, state.availabilities, state.participants, state.votes, updateState, computeCommonDates, computeParticipantStatus]);
 
   // Переключение выбора даты
   const toggleDateSelection = useCallback((date: string) => {
@@ -301,7 +344,23 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
 
     const newCommonDates = computeCommonDates(optimisticAvailabilities, state.participants);
 
-    updateState({ selectedDates: newSelectedDates, commonDates: newCommonDates });
+    // Оптимистичное обновление статуса текущего участника
+    const updatedParticipants = state.currentParticipantId ? state.participants.map(p => {
+      if (p.id !== state.currentParticipantId) return p;
+      const newStatus = computeParticipantStatus(
+        p.id,
+        optimisticAvailabilities,
+        state.votes,
+        newCommonDates
+      );
+      return { ...p, status: newStatus };
+    }) : state.participants;
+
+    updateState({
+      selectedDates: newSelectedDates,
+      commonDates: newCommonDates,
+      participants: updatedParticipants
+    });
     
     if (state.currentParticipantId) {
       if (isRemoving) {
@@ -314,7 +373,7 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     } else {
       console.warn('⚠️ Нет текущего участника для сохранения доступности');
     }
-  }, [state.selectedDates, state.currentParticipantId, state.availabilities, state.participants, updateAvailability, removeAvailabilityForDate, updateState, computeCommonDates]);
+  }, [state.selectedDates, state.currentParticipantId, state.availabilities, state.participants, state.votes, updateAvailability, removeAvailabilityForDate, updateState, computeCommonDates, computeParticipantStatus]);
 
   // Голосование за финальную дату
   const castFinalVote = useCallback((date: string) => {
@@ -327,16 +386,16 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     const isUnvoting = currentVote?.votedDate === date;
 
     if (isUnvoting) {
-      // Отмена голоса — оптимистично убираем
       const updatedVotes = state.votes.filter(v => v.participantId !== state.currentParticipantId);
-      updateState({ votes: updatedVotes });
+      const updatedParticipants = state.participants.map(p =>
+        p.id === state.currentParticipantId ? { ...p, status: ParticipantStatus.CHOOSEN_DATE } : p
+      );
+      updateState({ votes: updatedVotes, participants: updatedParticipants });
 
-      // Отправляем на сервер
       meetingApi.removeVote(state.meeting.id, state.currentParticipantId).catch(err => {
         console.error('❌ Ошибка удаления голоса:', err);
       });
     } else {
-      // Голосуем / меняем голос — оптимистично обновляем
       const optimisticVote: Vote = {
         id: `optimistic-${Date.now()}`,
         participantId: state.currentParticipantId,
@@ -348,11 +407,12 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
         ...state.votes.filter(v => v.participantId !== state.currentParticipantId),
         optimisticVote
       ];
-      updateState({ votes: updatedVotes });
+      const updatedParticipants = state.participants.map(p =>
+        p.id === state.currentParticipantId ? { ...p, status: ParticipantStatus.VOTED } : p
+      );
+      updateState({ votes: updatedVotes, participants: updatedParticipants });
 
-      // Отправляем на сервер
       meetingApi.castVote(state.meeting.id, state.currentParticipantId, date).then(realVote => {
-        // Заменяем оптимистичный голос реальным
         setState(prev => ({
           ...prev,
           votes: prev.votes.map(v => v.id === optimisticVote.id ? realVote : v)
@@ -361,7 +421,7 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
         console.error('❌ Ошибка голосования:', err);
       });
     }
-  }, [state.meeting, state.currentParticipantId, state.votes, updateState]);
+  }, [state.meeting, state.currentParticipantId, state.votes, state.participants, updateState]);
 
   // Очистка ошибки
   const clearError = useCallback(() => {

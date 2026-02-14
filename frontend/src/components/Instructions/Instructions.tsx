@@ -47,7 +47,7 @@ const Instructions: React.FC<InstructionsProps> = ({ variant, inviteUrl }) => {
           className="instructions-invite-btn"
           onClick={handleInviteClick}
         >
-          {copied ? 'Скопировано!' : 'Пригласить участников'}
+          {copied ? 'Ссылка скопирована!' : 'Пригласить участников'}
         </button>
       )}
     </div>
