@@ -112,7 +112,7 @@ const HomePage: React.FC = () => {
     <div className="home-page">
       <div className="home-content">
         <div className="home-header">
-          <h1>Chronos</h1>
+          <h1>Встречница</h1>
           <button 
             className="logout-btn"
             onClick={handleLogout}

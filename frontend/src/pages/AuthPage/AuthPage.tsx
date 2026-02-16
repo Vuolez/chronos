@@ -54,7 +54,7 @@ const AuthPage: React.FC = () => {
   return (
     <div className="auth-page">
       <div className="auth-container">
-        <h1>Добро пожаловать в Chronos</h1>
+        <h1>Встречница</h1>
         <p>Войдите через Яндекс для продолжения</p>
         
         {/* Показываем ошибку если есть */}
