@@ -71,10 +71,21 @@ const AuthCallback: React.FC = () => {
         console.log('🔍 AuthCallback: Проверяем JWT в localStorage:', !!localStorage.getItem('jwt_token'));
         console.log('🔍 AuthCallback: authApi.isAuthenticated():', authApi.isAuthenticated());
         
+        // Определяем куда перенаправить после авторизации
+        const returnTo = sessionStorage.getItem('auth_return_to');
+        sessionStorage.removeItem('auth_return_to');
+        
+        const isValidReturnTo = returnTo &&
+          returnTo.startsWith('/') &&
+          !returnTo.includes('//') &&
+          returnTo.length <= 500;
+        
+        const redirectPath = isValidReturnTo ? returnTo : '/';
+        console.log('🚀 AuthCallback: Навигация на', redirectPath);
+        
         // Небольшая задержка для обновления состояния
         setTimeout(() => {
-          console.log('🚀 AuthCallback: Навигация на главную страницу');
-          navigate('/', { replace: true });
+          navigate(redirectPath, { replace: true });
         }, 100);
         
       } catch (err) {

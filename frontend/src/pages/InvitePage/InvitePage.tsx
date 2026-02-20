@@ -78,9 +78,10 @@ const InvitePage: React.FC = () => {
     }
   };
 
-  // Обработчик входа в систему
+  // Обработчик входа в систему (передаём returnTo для редиректа после авторизации)
   const handleLogin = () => {
-    navigate('/auth');
+    const returnTo = encodeURIComponent(window.location.pathname);
+    navigate(`/auth?returnTo=${returnTo}`);
   };
 
   if (isLoading) {

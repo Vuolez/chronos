@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authApi } from '../../services/api';
 import './AuthPage.css';
 
 const AuthPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Прямая авторизация через Яндекс OAuth
   const handleYandexAuth = () => {
+    const returnTo = searchParams.get('returnTo');
+    if (returnTo) {
+      sessionStorage.setItem('auth_return_to', returnTo);
+    }
+
     const clientId = '3f41d27790434692b7f6a36bf3d4ad41';
     const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
     const responseType = 'token';
