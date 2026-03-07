@@ -56,6 +56,11 @@ interface PeriodPickerProps {
   onClose: () => void;
 }
 
+/** Минимальное время окончания: начало + 30 минут */
+function getMinEndMinutes(startH: number, startM: number): number {
+  return Math.min(startH * 60 + startM + SLOT_MINUTES, 24 * 60);
+}
+
 const PeriodPicker: React.FC<PeriodPickerProps> = ({
   anchorSlot,
   initialRange,
@@ -74,6 +79,17 @@ const PeriodPicker: React.FC<PeriodPickerProps> = ({
   const [startM, setStartM] = useState(startDefault.m);
   const [endH, setEndH] = useState(endDefault.h);
   const [endM, setEndM] = useState(endDefault.m);
+
+  const minEndMinutes = getMinEndMinutes(startH, startM);
+
+  /** Часы, доступные для выбора конца (конец >= начало + 30 мин) */
+  const validEndHours =
+    minEndMinutes > 23 * 60 + 30
+      ? [24]
+      : HOURS.filter(h => h * 60 + 30 >= minEndMinutes);
+  /** Минуты для выбора конца при выбранном endH */
+  const validEndMinutes =
+    endH === 24 ? [0] : MINUTES.filter(m => endH * 60 + m >= minEndMinutes);
 
   const [openDropdown, setOpenDropdown] = useState<
     'startH' | 'startM' | 'endH' | 'endM' | null
@@ -107,6 +123,18 @@ const PeriodPicker: React.FC<PeriodPickerProps> = ({
     },
     []
   );
+
+  // Корректируем конец, если он стал раньше начала (при изменении начала)
+  useEffect(() => {
+    const endMinutes = endH * 60 + endM;
+    if (endMinutes < minEndMinutes) {
+      const newTotal = Math.min(minEndMinutes, 24 * 60);
+      const newH = Math.floor(newTotal / 60);
+      const newM = newTotal % 60;
+      setEndH(newH);
+      setEndM(newM === 0 ? 0 : 30);
+    }
+  }, [startH, startM, endH, endM, minEndMinutes]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -208,7 +236,7 @@ const PeriodPicker: React.FC<PeriodPickerProps> = ({
               </button>
               {openDropdown === 'endH' && (
                 <div className="period-picker-dropdown-list">
-                  {HOURS.map(h => (
+                  {validEndHours.map(h => (
                     <div
                       key={h}
                       className={`period-picker-dropdown-item ${
@@ -236,7 +264,7 @@ const PeriodPicker: React.FC<PeriodPickerProps> = ({
               </button>
               {openDropdown === 'endM' && (
                 <div className="period-picker-dropdown-list">
-                  {MINUTES.map(m => (
+                  {validEndMinutes.map(m => (
                     <div
                       key={m}
                       className={`period-picker-dropdown-item ${
