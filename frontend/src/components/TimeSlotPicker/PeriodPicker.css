@@ -1,0 +1,165 @@
+/* Окно выбора периода (начало/конец) */
+
+.period-picker-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.period-picker-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  min-width: 280px;
+  max-width: 90vw;
+}
+
+.period-picker-title {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.period-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.period-picker-row:last-of-type {
+  margin-bottom: 20px;
+}
+
+.period-picker-label {
+  font-size: 0.9rem;
+  color: #666;
+  min-width: 60px;
+}
+
+.period-picker-time-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.period-picker-dropdown-trigger {
+  padding: 8px 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  background: white;
+  font-size: 0.95rem;
+  color: #333;
+  cursor: pointer;
+  min-width: 56px;
+  text-align: center;
+  transition: border-color 0.15s ease;
+}
+
+.period-picker-dropdown-trigger:hover {
+  border-color: #667eea;
+}
+
+.period-picker-dropdown-trigger:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.period-picker-separator {
+  font-size: 1rem;
+  color: #999;
+}
+
+.period-picker-dropdown-wrapper {
+  position: relative;
+}
+
+.period-picker-dropdown-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 10;
+  min-width: 56px;
+}
+
+.period-picker-dropdown-item {
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.period-picker-dropdown-item:hover {
+  background: #f5f5f5;
+}
+
+.period-picker-dropdown-item.selected {
+  background: #e8ecff;
+  color: #667eea;
+  font-weight: 500;
+}
+
+.period-picker-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.period-picker-btn-delete {
+  padding: 10px 20px;
+  border: 1px solid #dc3545;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #dc3545;
+  margin-right: auto;
+}
+
+.period-picker-btn-delete:hover {
+  background: #fff5f5;
+}
+
+.period-picker-btn-cancel {
+  padding: 10px 20px;
+  border: 1px solid #e5e5e5;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.period-picker-btn-cancel:hover {
+  background: #f5f5f5;
+}
+
+.period-picker-btn-apply {
+  padding: 10px 20px;
+  border: none;
+  background: #667eea;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.period-picker-btn-apply:hover {
+  background: #5a6fd8;
+}

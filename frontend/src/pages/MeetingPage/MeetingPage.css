@@ -16,11 +16,24 @@
   gap: 20px;
 }
 
-.meeting-header h1 {
+.meeting-header-title-block {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.meeting-header-title-block h1 {
   color: #333;
   margin: 0;
   font-size: 1.8rem;
   font-weight: 600;
+}
+
+.meeting-header-description {
+  font-size: 0.95rem;
+  color: #666;
+  margin: 8px 0 0 0;
+  line-height: 1.4;
+  white-space: pre-line;
 }
 
 .back-btn {
@@ -340,6 +353,98 @@
 
 .vote-date-selected .vote-count {
   background: #4caf50;
+}
+
+.vote-date-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vote-time-ranges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: 8px;
+}
+
+.vote-time-btn {
+  padding: 6px 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  background: #f8f9fa;
+  font-size: 0.85rem;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vote-time-count {
+  background: #667eea;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.vote-time-btn.vote-time-selected .vote-time-count {
+  background: #4caf50;
+}
+
+.vote-time-btn:hover {
+  border-color: #667eea;
+  background: #f0f4ff;
+  color: #333;
+}
+
+.vote-time-btn.vote-time-selected {
+  border-color: #4caf50;
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* Финальная дата (результат голосования) */
+.final-date-result {
+  margin-top: 16px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border: 2px solid #4caf50;
+  border-radius: 12px;
+}
+
+.final-date-result h3 {
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2e7d32;
+}
+
+.final-date-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1b5e20;
+  text-transform: capitalize;
+}
+
+.final-date-value .final-date-time {
+  margin-left: 8px;
+  font-weight: 500;
+  color: #388e3c;
+}
+
+.final-date-votes {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: #558b2f;
 }
 
 /* Блок отсутствия общих дат */

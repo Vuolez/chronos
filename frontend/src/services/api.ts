@@ -15,7 +15,9 @@ import {
   Participant,
   Availability,
   Vote,
-  ApiErrorResponse 
+  CommonTimeSlots,
+  ApiErrorResponse,
+  FeedbackRequest
 } from '../types';
 
 // Настройка базового URL: в проде — тот же хост (/api проксируется nginx), в dev — localhost:8080
@@ -197,9 +199,9 @@ export const meetingApi = {
     return response.data;
   },
 
-  // Получить общие доступные даты
-  async getCommonDates(meetingId: string): Promise<string[]> {
-    const response = await apiClient.get<string[]>(`/meetings/${meetingId}/common-dates`);
+  // Получить общие доступные временные слоты
+  async getCommonAvailableTimeSlots(meetingId: string): Promise<CommonTimeSlots[]> {
+    const response = await apiClient.get<CommonTimeSlots[]>(`/meetings/${meetingId}/common-dates`);
     return response.data;
   },
 
@@ -221,10 +223,14 @@ export const meetingApi = {
   },
 
   // Проголосовать за финальную дату (или изменить голос)
-  async castVote(meetingId: string, participantId: string, date: string): Promise<Vote> {
+  async castVote(
+    meetingId: string,
+    participantId: string,
+    request: { date: string; timeStart?: string; timeEnd?: string }
+  ): Promise<Vote> {
     const response = await apiClient.put<Vote>(
       `/meetings/${meetingId}/participants/${participantId}/vote`,
-      { date }
+      request
     );
     return response.data;
   },
@@ -234,6 +240,15 @@ export const meetingApi = {
     await apiClient.delete(
       `/meetings/${meetingId}/participants/${participantId}/vote`
     );
+  }
+};
+
+// ============================================
+// ОБРАТНАЯ СВЯЗЬ API
+// ============================================
+export const feedbackApi = {
+  async submitFeedback(request: FeedbackRequest): Promise<void> {
+    await apiClient.post('/feedback', request);
   }
 };
 

@@ -19,6 +19,8 @@ tags:
     description: Управление участниками встреч
   - name: availability
     description: Управление доступностью участников
+  - name: feedback
+    description: Обратная связь
 
 paths:
   # ============================================
@@ -88,6 +90,38 @@ paths:
       responses:
         '200':
           description: Успешный выход
+
+  # ============================================
+  # ОБРАТНАЯ СВЯЗЬ
+  # ============================================
+  /feedback:
+    post:
+      tags:
+        - feedback
+      summary: Отправить обратную связь
+      description: |
+        Отправка сообщения обратной связи от авторизованного пользователя.
+        user_id берётся из JWT токена.
+      operationId: submitFeedback
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+      responses:
+        '201':
+          description: Обратная связь успешно отправлена
+        '400':
+          description: Ошибка валидации данных
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '401':
+          description: Не авторизован
 
   # ============================================
   # ВСТРЕЧИ
@@ -402,14 +436,13 @@ paths:
             format: uuid
       responses:
         '200':
-          description: Общие доступные даты
+          description: Общие доступные временные слоты (дата + период)
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  type: string
-                  format: date
+                  $ref: '#/components/schemas/CommonTimeSlots'
         '404':
           description: Встреча не найдена
           content:
@@ -536,16 +569,12 @@ components:
           format: date
           description: Дата доступности
           example: "2024-03-15"
-        timeFrom:
-          type: string
-          format: time
-          description: Время начала доступности
-          example: "09:00:00"
-        timeTo:
-          type: string
-          format: time
-          description: Время окончания доступности
-          example: "17:00:00"
+        timeSlots:
+          type: array
+          items:
+            type: integer
+          nullable: true
+          description: Индексы слотов 0-95. null = время не выбрано, [] = весь день
 
     MeetingResponse:
       type: object
@@ -640,16 +669,11 @@ components:
           type: string
           format: date
           description: Дата доступности
-        timeFrom:
-          type: string
-          format: time
-          nullable: true
-          description: Время начала доступности
-        timeTo:
-          type: string
-          format: time
-          nullable: true
-          description: Время окончания доступности
+        timeSlots:
+          type: array
+          items:
+            type: integer
+          description: Индексы слотов 0-95
         createdAt:
           type: string
           format: date-time
@@ -668,11 +692,27 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AvailabilityResponse'
-        commonAvailableDates:
+        commonAvailableTimeSlots:
           type: array
           items:
-            type: string
-            format: date
+            $ref: '#/components/schemas/CommonTimeSlots'
+          description: Общие временные слоты (дата + период) когда все участники свободны
+
+    CommonTimeSlots:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          description: Дата
+        startTime:
+          type: string
+          format: time
+          description: Начало периода (HH:mm)
+        endTime:
+          type: string
+          format: time
+          description: Конец периода (HH:mm)
 
     MeetingStatus:
       type: string
@@ -712,6 +752,21 @@ components:
           $ref: '#/components/schemas/ParticipantResponse'
           nullable: true
           description: Информация об участнике (если является участником)
+
+    FeedbackRequest:
+      type: object
+      required:
+        - message
+      properties:
+        phoneNumber:
+          type: string
+          nullable: true
+          maxLength: 50
+          description: Номер телефона (опционально)
+        message:
+          type: string
+          maxLength: 2000
+          description: Текст сообщения
 
     ApiErrorResponse:
       type: object

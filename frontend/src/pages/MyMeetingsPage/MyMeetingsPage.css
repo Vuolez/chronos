@@ -179,6 +179,7 @@
   color: #666;
   margin: 0 0 12px 0;
   line-height: 1.4;
+  white-space: pre-line;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -236,6 +237,7 @@
   margin: 0 0 24px 0;
   text-align: center;
   line-height: 1.4;
+  white-space: pre-line;
 }
 
 .modal-actions {

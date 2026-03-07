@@ -12,10 +12,23 @@ interface AvailabilityRepository : JpaRepository<Availability, UUID> {
     fun findByMeetingId(meetingId: UUID): List<Availability>
     fun findByParticipantId(participantId: UUID): List<Availability>
     fun findByMeetingIdAndDate(meetingId: UUID, date: LocalDate): List<Availability>
-    
-    @Query("SELECT a.date FROM Availability a WHERE a.meetingId = :meetingId GROUP BY a.date HAVING COUNT(DISTINCT a.participantId) = :participantCount")
-    fun findCommonDates(meetingId: UUID, participantCount: Long): List<LocalDate>
-    
+    fun findByParticipantIdAndMeetingIdAndDate(participantId: UUID, meetingId: UUID, date: LocalDate): Availability?
+
+    @Query(value = """
+        SELECT a.*
+        FROM availabilities a
+        WHERE a.meeting_id = :meetingId
+          AND a.date IN (
+            SELECT date
+            FROM availabilities
+            WHERE meeting_id = :meetingId
+            GROUP BY date
+            HAVING COUNT(DISTINCT participant_id) = :participantCount
+          )
+        ORDER BY a.date, a.participant_id
+        """, nativeQuery = true)
+    fun findAvailabilitiesWithCommonDates(meetingId: UUID, participantCount: Long): List<Availability>
+
     fun deleteByParticipantId(participantId: UUID)
     
     fun deleteByMeetingId(meetingId: UUID)

@@ -5,6 +5,7 @@ import com.chronos.repository.VoteRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.LocalTime
 import java.util.*
 
 @Service
@@ -15,19 +16,32 @@ class VoteService(
 ) {
 
     /**
-     * Голосование участника за финальную дату.
-     * Если у участника уже есть голос — удаляет старый и создает новый (upsert).
+     * Голосование участника за финальную дату (и опционально временной диапазон).
+     * Если у участника уже есть голос — обновляет его (upsert).
      * У одного участника может быть только один голос на встречу.
      */
-    fun castVote(participantId: UUID, meetingId: UUID, date: LocalDate): Vote {
-        // Удаляем предыдущий голос (если был)
-        voteRepository.deleteByParticipantIdAndMeetingId(participantId, meetingId)
-
-        val vote = Vote(
-            participantId = participantId,
-            meetingId = meetingId,
-            votedDate = date
-        )
+    fun castVote(
+        participantId: UUID,
+        meetingId: UUID,
+        date: LocalDate,
+        timeStart: LocalTime? = null,
+        timeEnd: LocalTime? = null
+    ): Vote {
+        val existing = voteRepository.findByParticipantIdAndMeetingId(participantId, meetingId)
+        val vote = if (existing != null) {
+            existing.votedDate = date
+            existing.timeStart = timeStart
+            existing.timeEnd = timeEnd
+            existing
+        } else {
+            Vote(
+                participantId = participantId,
+                meetingId = meetingId,
+                votedDate = date,
+                timeStart = timeStart,
+                timeEnd = timeEnd
+            )
+        }
         val saved = voteRepository.save(vote)
         participantStatusService.recalculateParticipantStatuses(meetingId)
         return saved

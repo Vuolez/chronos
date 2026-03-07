@@ -1,11 +1,14 @@
 package com.chronos.entity
 
+import com.chronos.converter.PostgreSQLBit96JdbcType
+import com.chronos.converter.TimeSlotsBitConverter
 import jakarta.persistence.*
 import org.hibernate.annotations.CreationTimestamp
+import org.hibernate.annotations.JdbcType
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
 import java.util.*
+import java.util.BitSet
 
 @Entity
 @Table(name = "availabilities")
@@ -23,11 +26,10 @@ data class Availability(
     @Column(nullable = false)
     val date: LocalDate,
     
-    @Column(name = "time_from")
-    val timeFrom: LocalTime? = null,
-    
-    @Column(name = "time_to")
-    val timeTo: LocalTime? = null,
+    @Convert(converter = TimeSlotsBitConverter::class)
+    @JdbcType(PostgreSQLBit96JdbcType::class)
+    @Column(name = "time_slots", columnDefinition = "bit(48)")
+    var timeSlots: BitSet? = null,
     
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)

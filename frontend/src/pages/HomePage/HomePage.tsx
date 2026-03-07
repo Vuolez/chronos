@@ -5,12 +5,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi, meetingApi } from '../../services/api';
 import { UserInfo, CreateMeetingRequest } from '../../types/api';
+import FeedbackForm from '../../components/FeedbackForm';
 import './HomePage.css';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<UserInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [meetingTitle, setMeetingTitle] = useState('');
@@ -239,6 +241,24 @@ const HomePage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Кнопка обратной связи */}
+      {!isLoading && (
+        <>
+          <button
+            className="feedback-fab"
+            onClick={() => setShowFeedbackForm(true)}
+            title="Обратная связь"
+            aria-label="Обратная связь"
+          >
+            ?
+          </button>
+          <FeedbackForm
+            isOpen={showFeedbackForm}
+            onClose={() => setShowFeedbackForm(false)}
+          />
+        </>
+      )}
     </div>
   );
 };

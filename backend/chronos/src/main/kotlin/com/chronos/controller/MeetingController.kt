@@ -45,13 +45,13 @@ class MeetingController(
 
         val participants = participantService.getParticipantsByMeetingId(meetingId)
         val availabilities = availabilityService.getAvailabilitiesByMeetingId(meetingId)
-        val commonDates = availabilityService.getCommonAvailableDates(meetingId)
+        val commonTimeSlots = availabilityService.getCommonAvailableDates(meetingId)
 
         val response = MeetingDetailResponse().apply {
             this.meeting = convertToMeetingResponse(meeting)
             this.participants = participants.map(::convertToParticipantResponse)
             this.availabilities = availabilities.map(::convertToAvailabilityResponse)
-            this.commonAvailableDates = commonDates
+            this.commonAvailableTimeSlots = commonTimeSlots.map { convertToCommonTimeSlotsDto(it) }
         }
 
         return ResponseEntity.ok(response)
@@ -63,13 +63,13 @@ class MeetingController(
 
         val participants = participantService.getParticipantsByMeetingId(meeting.id)
         val availabilities = availabilityService.getAvailabilitiesByMeetingId(meeting.id)
-        val commonDates = availabilityService.getCommonAvailableDates(meeting.id)
+        val commonTimeSlots = availabilityService.getCommonAvailableDates(meeting.id)
 
         val response = MeetingDetailResponse().apply {
             this.meeting = convertToMeetingResponse(meeting)
             this.participants = participants.map(::convertToParticipantResponse)
             this.availabilities = availabilities.map(::convertToAvailabilityResponse)
-            this.commonAvailableDates = commonDates
+            this.commonAvailableTimeSlots = commonTimeSlots.map { convertToCommonTimeSlotsDto(it) }
         }
 
         return ResponseEntity.ok(response)
@@ -105,14 +105,20 @@ class MeetingController(
             .joinedAt(participant.joinedAt)
     }
 
+    private fun convertToCommonTimeSlotsDto(slot: AvailabilityService.CommonTimeSlots): com.chronos.dto.CommonTimeSlots {
+        return com.chronos.dto.CommonTimeSlots()
+            .date(slot.date)
+            .startTime(slot.startTime.toString())
+            .endTime(slot.endTime.toString())
+    }
+
     private fun convertToAvailabilityResponse(availability: com.chronos.entity.Availability): AvailabilityResponse {
         return AvailabilityResponse()
             .id(availability.id)
             .participantId(availability.participantId)
             .meetingId(availability.meetingId)
             .date(availability.date)
-            .timeFrom(availability.timeFrom?.toString())
-            .timeTo(availability.timeTo?.toString())
+            .timeSlots(com.chronos.util.TimeSlotsUtils.bitSetToList(availability.timeSlots))
             .createdAt(availability.createdAt)
     }
     

@@ -2,6 +2,7 @@ package com.chronos.service
 
 import com.chronos.entity.ParticipantStatus
 import com.chronos.repository.AvailabilityRepository
+import com.chronos.util.AvailabilityFilterUtils
 import com.chronos.repository.ParticipantRepository
 import com.chronos.repository.VoteRepository
 import org.springframework.stereotype.Service
@@ -31,14 +32,16 @@ class ParticipantStatusService(
         if (participants.isEmpty()) return
 
         val participantCount = participants.size.toLong()
-        val commonDates = availabilityRepository.findCommonDates(meetingId, participantCount).toSet()
+        val availabilities = availabilityRepository.findAvailabilitiesWithCommonDates(meetingId, participantCount)
+        val filtered = AvailabilityFilterUtils.filterByIntersectingTimeSlots(availabilities)
+        val commonDates = filtered.map { it.date }.toSet()
 
         for (participant in participants) {
-            val availabilities = availabilityRepository.findByParticipantId(participant.id)
+            val participantAvailabilities = availabilityRepository.findByParticipantId(participant.id)
             val vote = voteRepository.findByParticipantIdAndMeetingId(participant.id, meetingId)
 
             val newStatus = when {
-                availabilities.isEmpty() -> ParticipantStatus.THINKING
+                participantAvailabilities.isEmpty() -> ParticipantStatus.THINKING
                 vote != null && vote.votedDate in commonDates -> ParticipantStatus.VOTED
                 else -> ParticipantStatus.CHOOSEN_DATE
             }

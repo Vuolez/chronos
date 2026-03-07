@@ -9,18 +9,25 @@ import {
   Participant, 
   Availability,
   Vote,
+  CommonTimeSlots,
   CreateMeetingRequest,
   AddParticipantRequest,
   UpdateAvailabilityRequest,
   ParticipantStatus
 } from '../types';
 
+// Уникальные даты из commonAvailableTimeSlots (для проверки голоса)
+function deriveCommonDates(slots: CommonTimeSlots[]): string[] {
+  return Array.from(new Set(slots.map(s => s.date))).sort();
+}
+
 interface UseMeetingState {
   // Данные
   meeting: Meeting | null;
   participants: Participant[];
   availabilities: Availability[];
-  commonDates: string[];
+  commonAvailableTimeSlots: CommonTimeSlots[];
+  commonDates: string[]; // производное из commonAvailableTimeSlots
   votes: Vote[];
   
   // Состояние загрузки
@@ -39,7 +46,9 @@ interface UseMeetingActions {
   updateAvailability: (participantId: string, dates: string[]) => Promise<boolean>;
   setCurrentParticipant: (participantId: string) => void;
   toggleDateSelection: (date: string) => void;
-  castFinalVote: (date: string) => void;
+  saveAvailabilityWithTimeSlots: (participantId: string, date: string, slots: number[]) => Promise<boolean>;
+  removeAvailabilityForDate: (participantId: string, date: string) => Promise<void>;
+  castFinalVote: (date: string, timeStart?: string, timeEnd?: string) => void;
   clearError: () => void;
   
   // Автообновление
@@ -52,6 +61,7 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     meeting: null,
     participants: [],
     availabilities: [],
+    commonAvailableTimeSlots: [],
     commonDates: [],
     votes: [],
     isLoading: false,
@@ -120,11 +130,13 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
         console.warn('⚠️ Не удалось загрузить голоса:', e);
       }
       
+      const slots = meetingDetail.commonAvailableTimeSlots ?? [];
       updateState({
         meeting: meetingDetail.meeting,
         participants: meetingDetail.participants,
         availabilities: meetingDetail.availabilities,
-        commonDates: meetingDetail.commonAvailableDates,
+        commonAvailableTimeSlots: slots,
+        commonDates: deriveCommonDates(slots),
         votes,
         isLoading: false,
         selectedDates: [],
@@ -292,11 +304,23 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     try {
       await meetingApi.removeAvailability(state.meeting.id, participantId, date);
       
+      const updatedAvailabilities = state.availabilities.filter(
+        a => !(a.participantId === participantId && a.date === date)
+      );
+      const newSelectedDates = updatedAvailabilities
+        .filter(a => a.participantId === participantId)
+        .map(a => a.date);
+
+      let slotsData: CommonTimeSlots[] = [];
+      try {
+        const detail = await meetingApi.getMeetingByToken(state.meeting.shareToken);
+        slotsData = detail.commonAvailableTimeSlots ?? [];
+      } catch {
+        // Используем пустой список при ошибке refetch
+      }
+
+      const newCommonDates = deriveCommonDates(slotsData);
       updateState(prev => {
-        const updatedAvailabilities = prev.availabilities.filter(
-          a => !(a.participantId === participantId && a.date === date)
-        );
-        const newCommonDates = computeCommonDates(updatedAvailabilities, prev.participants);
         const updatedParticipants = prev.participants.map(p => {
           if (p.id !== participantId) return p;
           const newStatus = computeParticipantStatus(
@@ -309,6 +333,8 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
         });
         return {
           availabilities: updatedAvailabilities,
+          selectedDates: newSelectedDates,
+          commonAvailableTimeSlots: slotsData,
           commonDates: newCommonDates,
           participants: updatedParticipants
         };
@@ -316,76 +342,86 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     } catch (error) {
       console.error('❌ Ошибка удаления доступности:', error);
     }
-  }, [state.meeting, updateState, computeCommonDates, computeParticipantStatus]);
+  }, [state.meeting, state.availabilities, updateState, computeParticipantStatus]);
 
-  // Переключение выбора даты
-  const toggleDateSelection = useCallback((date: string) => {
-    console.log('📅 toggleDateSelection: дата =', date, 'текущий участник =', state.currentParticipantId);
-    
-    const isRemoving = state.selectedDates.includes(date);
-    const newSelectedDates = isRemoving
-      ? state.selectedDates.filter(d => d !== date)
-      : [...state.selectedDates, date];
-    
-    console.log('📅 Новые выбранные даты:', newSelectedDates, isRemoving ? '(удаление)' : '(добавление)');
+  // Сохранение доступности с временными слотами (вызывается из TimeSlotPicker или при подтверждении дня без выбора времени)
+  const saveAvailabilityWithTimeSlots = useCallback(async (
+    participantId: string,
+    date: string,
+    slots: number[]
+  ): Promise<boolean> => {
+    if (!state.meeting) return false;
 
-    // Оптимистичное вычисление commonDates
-    let optimisticAvailabilities: { participantId: string; date: string }[];
-    if (isRemoving) {
-      optimisticAvailabilities = state.availabilities.filter(
-        a => !(a.participantId === state.currentParticipantId && a.date === date)
+    updateState({ isLoading: true, error: null });
+
+    try {
+      const availability = await meetingApi.updateAvailability(
+        state.meeting.id,
+        participantId,
+        { date, timeSlots: Array.isArray(slots) ? slots : [] }
       );
-    } else {
-      const alreadyExists = state.availabilities.some(
-        a => a.participantId === state.currentParticipantId && a.date === date
-      );
-      optimisticAvailabilities = alreadyExists
-        ? [...state.availabilities]
-        : [...state.availabilities, { participantId: state.currentParticipantId!, date }];
+
+      // Refetch для получения актуальных commonAvailableTimeSlots (пересечение считается на бэке)
+      const detail = await meetingApi.getMeetingByToken(state.meeting.shareToken);
+      const slotsData = detail.commonAvailableTimeSlots ?? [];
+
+      updateState(prev => {
+        const withoutThis = prev.availabilities.filter(
+          a => !(a.participantId === participantId && a.date === date)
+        );
+        const updatedAvailabilities = [...withoutThis, availability];
+        const newSelectedDates = updatedAvailabilities
+          .filter(a => a.participantId === participantId)
+          .map(a => a.date);
+        const newCommonDates = deriveCommonDates(slotsData);
+        const updatedParticipants = prev.participants.map(p => {
+          if (p.id !== participantId) return p;
+          const newStatus = computeParticipantStatus(
+            p.id,
+            updatedAvailabilities,
+            prev.votes,
+            newCommonDates
+          );
+          return { ...p, status: newStatus };
+        });
+        return {
+          availabilities: updatedAvailabilities,
+          selectedDates: newSelectedDates,
+          commonAvailableTimeSlots: slotsData,
+          commonDates: newCommonDates,
+          participants: updatedParticipants,
+          isLoading: false
+        };
+      });
+
+      return true;
+    } catch (error) {
+      updateState({
+        isLoading: false,
+        error: error instanceof Error ? error.message : 'Ошибка обновления доступности'
+      });
+      return false;
     }
+  }, [state.meeting, updateState, computeParticipantStatus]);
 
-    const newCommonDates = computeCommonDates(optimisticAvailabilities, state.participants);
+  // Переключение выбора даты (no-op — API вызывается через onSaveSlots/onRemoveDay)
+  const toggleDateSelection = useCallback((_date: string) => {
+    // Клик по дню обрабатывается Calendar: показ кнопок, onOpenTimePicker, onSaveSlots, onRemoveDay
+  }, []);
 
-    // Оптимистичное обновление статуса текущего участника
-    const updatedParticipants = state.currentParticipantId ? state.participants.map(p => {
-      if (p.id !== state.currentParticipantId) return p;
-      const newStatus = computeParticipantStatus(
-        p.id,
-        optimisticAvailabilities,
-        state.votes,
-        newCommonDates
-      );
-      return { ...p, status: newStatus };
-    }) : state.participants;
-
-    updateState({
-      selectedDates: newSelectedDates,
-      commonDates: newCommonDates,
-      participants: updatedParticipants
-    });
-    
-    if (state.currentParticipantId) {
-      if (isRemoving) {
-        // Удаляем дату с сервера
-        removeAvailabilityForDate(state.currentParticipantId, date);
-      } else {
-        // Добавляем дату на сервер
-        updateAvailability(state.currentParticipantId, newSelectedDates);
-      }
-    } else {
-      console.warn('⚠️ Нет текущего участника для сохранения доступности');
-    }
-  }, [state.selectedDates, state.currentParticipantId, state.availabilities, state.participants, state.votes, updateAvailability, removeAvailabilityForDate, updateState, computeCommonDates, computeParticipantStatus]);
-
-  // Голосование за финальную дату
-  const castFinalVote = useCallback((date: string) => {
+  // Голосование за финальную дату (с опциональным временным диапазоном)
+  const castFinalVote = useCallback((date: string, timeStart?: string, timeEnd?: string) => {
     if (!state.meeting || !state.currentParticipantId) {
       console.warn('⚠️ Нет встречи или текущего участника для голосования');
       return;
     }
 
     const currentVote = state.votes.find(v => v.participantId === state.currentParticipantId);
-    const isUnvoting = currentVote?.votedDate === date;
+    const isUnvoting =
+      currentVote?.votedDate === date &&
+      (timeStart === undefined
+        ? !currentVote?.timeStart && !currentVote?.timeEnd
+        : currentVote?.timeStart === timeStart && currentVote?.timeEnd === timeEnd);
 
     const participantId = state.currentParticipantId;
     if (isUnvoting) {
@@ -405,6 +441,8 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
         participantId,
         meetingId: state.meeting.id,
         votedDate: date,
+        timeStart,
+        timeEnd,
         createdAt: new Date().toISOString()
       };
       updateState(prev => ({
@@ -417,7 +455,7 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
         )
       }));
 
-      meetingApi.castVote(state.meeting.id, participantId, date).then(realVote => {
+      meetingApi.castVote(state.meeting.id, participantId, { date, timeStart, timeEnd }).then(realVote => {
         setState(prev => ({
           ...prev,
           votes: prev.votes.map(v => v.id === optimisticVote.id ? realVote : v)
@@ -450,18 +488,19 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
       const votesToCompare = newVotes ?? state.votes;
 
       // Сравниваем хэш данных чтобы обновлять только при изменениях (включая status участников)
+      const slots = meetingDetail.commonAvailableTimeSlots ?? [];
       const newDataHash = JSON.stringify({
         participants: meetingDetail.participants.map(p => ({ id: p.id, name: p.name, status: p.status, isAuthenticated: p.isAuthenticated })),
-        availabilities: meetingDetail.availabilities.map(a => ({ participantId: a.participantId, date: a.date })),
-        commonDates: meetingDetail.commonAvailableDates,
-        votes: votesToCompare.map(v => ({ participantId: v.participantId, votedDate: v.votedDate }))
+        availabilities: meetingDetail.availabilities.map(a => ({ participantId: a.participantId, date: a.date, timeSlots: a.timeSlots })),
+        commonAvailableTimeSlots: slots,
+        votes: votesToCompare.map(v => ({ participantId: v.participantId, votedDate: v.votedDate, timeStart: v.timeStart, timeEnd: v.timeEnd }))
       });
       
       const currentDataHash = JSON.stringify({
         participants: state.participants.map(p => ({ id: p.id, name: p.name, status: p.status, isAuthenticated: p.isAuthenticated })),
-        availabilities: state.availabilities.map(a => ({ participantId: a.participantId, date: a.date })),
+        availabilities: state.availabilities.map(a => ({ participantId: a.participantId, date: a.date, timeSlots: a.timeSlots })),
         commonDates: state.commonDates,
-        votes: state.votes.map(v => ({ participantId: v.participantId, votedDate: v.votedDate }))
+        votes: state.votes.map(v => ({ participantId: v.participantId, votedDate: v.votedDate, timeStart: v.timeStart, timeEnd: v.timeEnd }))
       });
       
       // Обновляем только если данные изменились
@@ -499,11 +538,13 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
           // Пользователь не авторизован — пропускаем синхронизацию
         }
 
+        const newSlots = meetingDetail.commonAvailableTimeSlots ?? [];
         updateState({
           meeting: meetingDetail.meeting,
           participants: meetingDetail.participants,
           availabilities: meetingDetail.availabilities,
-          commonDates: meetingDetail.commonAvailableDates,
+          commonAvailableTimeSlots: newSlots,
+          commonDates: deriveCommonDates(newSlots),
           votes: votesToCompare,
           currentParticipantId: newCurrentParticipantId,
           selectedDates: newSelectedDates,
@@ -515,7 +556,7 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
       console.warn('⚠️ Ошибка автообновления:', error);
       // Не показываем ошибку пользователю для автообновления
     }
-  }, [state.participants, state.availabilities, state.commonDates, state.votes, state.currentParticipantId, state.selectedDates, updateState]);
+  }, [state.participants, state.availabilities, state.commonAvailableTimeSlots, state.commonDates, state.votes, state.currentParticipantId, state.selectedDates, updateState]);
 
   // Запуск автообновления
   const startAutoRefresh = useCallback((shareToken: string, intervalMs: number = 5000) => {
@@ -544,6 +585,8 @@ export const useMeeting = (): UseMeetingState & UseMeetingActions => {
     updateAvailability,
     setCurrentParticipant,
     toggleDateSelection,
+    saveAvailabilityWithTimeSlots,
+    removeAvailabilityForDate,
     castFinalVote,
     clearError,
     startAutoRefresh,

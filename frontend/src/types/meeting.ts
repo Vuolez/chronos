@@ -49,10 +49,9 @@ export interface Availability {
   id: string;
   participantId: string;
   meetingId: string;
-  date: string;      // ISO date string (YYYY-MM-DD)
-  timeFrom?: string; // HH:mm:ss format
-  timeTo?: string;   // HH:mm:ss format
-  createdAt: string; // ISO datetime string
+  date: string;       // ISO date string (YYYY-MM-DD)
+  timeSlots?: number[]; // Индексы слотов 0-47 (30 мин). [] = весь день, null/undefined = не выбрано
+  createdAt: string;  // ISO datetime string
 }
 
 // Голос участника за финальную дату
@@ -61,7 +60,16 @@ export interface Vote {
   participantId: string;
   meetingId: string;
   votedDate: string;   // ISO date string (YYYY-MM-DD)
+  timeStart?: string;  // HH:mm или HH:mm:ss
+  timeEnd?: string;    // HH:mm или HH:mm:ss
   createdAt: string;   // ISO datetime string
+}
+
+// Общий временной слот (дата + период когда все свободны)
+export interface CommonTimeSlots {
+  date: string;      // ISO date (YYYY-MM-DD)
+  startTime: string; // HH:mm или HH:mm:ss
+  endTime: string;   // HH:mm или HH:mm:ss
 }
 
 // Детальная информация о встрече (включает участников и доступности)
@@ -69,5 +77,5 @@ export interface MeetingDetail {
   meeting: Meeting;
   participants: Participant[];
   availabilities: Availability[];
-  commonAvailableDates: string[]; // массив дат ISO format
+  commonAvailableTimeSlots: CommonTimeSlots[];
 }

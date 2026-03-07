@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.util.*
 
 /**
@@ -38,7 +39,9 @@ class VoteController(
         }
 
         val date = LocalDate.parse(request.date)
-        val vote = voteService.castVote(participantId, meetingId, date)
+        val timeStart = request.timeStart?.let { LocalTime.parse(it) }
+        val timeEnd = request.timeEnd?.let { LocalTime.parse(it) }
+        val vote = voteService.castVote(participantId, meetingId, date, timeStart, timeEnd)
 
         return ResponseEntity.ok(vote.toResponse())
     }
@@ -81,6 +84,8 @@ class VoteController(
         participantId = this.participantId,
         meetingId = this.meetingId,
         votedDate = this.votedDate.toString(),
+        timeStart = this.timeStart?.toString(),
+        timeEnd = this.timeEnd?.toString(),
         createdAt = this.createdAt.toString()
     )
 }
@@ -89,7 +94,9 @@ class VoteController(
  * Request DTO для голосования
  */
 data class CastVoteRequest(
-    val date: String // ISO date string YYYY-MM-DD
+    val date: String, // ISO date string YYYY-MM-DD
+    val timeStart: String? = null, // HH:mm or HH:mm:ss
+    val timeEnd: String? = null // HH:mm or HH:mm:ss
 )
 
 /**
@@ -100,5 +107,7 @@ data class VoteResponse(
     val participantId: UUID,
     val meetingId: UUID,
     val votedDate: String,
+    val timeStart: String? = null,
+    val timeEnd: String? = null,
     val createdAt: String
 )

@@ -3,6 +3,7 @@
 
 import React from 'react';
 import { Participant, ParticipantStatus } from '../../types';
+import { unwrapJsonNullable } from '../../utils/jsonNullable';
 import UserAvatar from '../UserAvatar';
 import Instructions from '../Instructions';
 import './ParticipantsList.css';
@@ -66,8 +67,8 @@ const ParticipantsList: React.FC<ParticipantsListProps> = ({
               />
               <div className="participant-details">
                 <div className="participant-name">{participant.name}</div>
-                <div className={`participant-status ${getStatusClass(participant.status)}`}>
-                  {getStatusText(participant.status)}
+                <div className={`participant-status ${getStatusClass(unwrapJsonNullable(participant.status) ?? ParticipantStatus.THINKING)}`}>
+                  {getStatusText(unwrapJsonNullable(participant.status) ?? ParticipantStatus.THINKING)}
                 </div>
               </div>
             </div>

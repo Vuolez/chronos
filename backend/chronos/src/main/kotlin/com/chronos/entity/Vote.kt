@@ -21,10 +21,13 @@ data class Vote(
     val meetingId: UUID,
     
     @Column(name = "voted_date", nullable = false)
-    val votedDate: LocalDate,
+    var votedDate: LocalDate,
     
-    @Column(name = "voted_time")
-    val votedTime: LocalTime? = null,
+    @Column(name = "time_start")
+    var timeStart: LocalTime? = null,
+    
+    @Column(name = "time_end")
+    var timeEnd: LocalTime? = null,
     
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)

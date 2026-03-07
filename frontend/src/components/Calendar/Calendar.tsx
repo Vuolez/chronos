@@ -1,5 +1,5 @@
 // Компонент календаря для выбора дат
-// Соответствует требованиям iteration_1.md
+// При клике по дню сразу открывается окно выбора времени (TimeSlotPicker)
 
 import React, { useState } from 'react';
 import { 
@@ -14,10 +14,11 @@ import UserAvatar from '../UserAvatar';
 import './Calendar.css';
 
 interface CalendarProps {
-  selectedDates: string[];           // Выбранные даты в ISO формате
-  onDateClick: (date: string) => void; // Обработчик клика по дате
-  totalParticipants?: number;          // Общее количество участников
-  participantAvailabilities?: Array<{  // Доступности участников для отображения
+  selectedDates: string[];
+  onDateClick: (date: string) => void;
+  onOpenTimePicker?: (date: string) => void;
+  totalParticipants?: number;
+  participantAvailabilities?: Array<{
     date: string;
     participantName: string;
   }>;
@@ -26,47 +27,41 @@ interface CalendarProps {
 const Calendar: React.FC<CalendarProps> = ({
   selectedDates,
   onDateClick,
+  onOpenTimePicker,
   totalParticipants = 0,
   participantAvailabilities = []
 }) => {
-  // Состояние текущего месяца и года
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
-  // Получаем дни для отображения (БЕЗ selectedDates, чтобы не влиять на isSelected)
   const calendarDays = getCalendarDays(currentYear, currentMonth, []);
-  
-  // Добавляем участников к дням календаря
   const daysWithParticipants = addParticipantsToCalendarDays(
     calendarDays, 
     participantAvailabilities
   );
-  
-  // Добавляем информацию о выбранных датах текущего пользователя
   const daysWithSelection = daysWithParticipants.map(day => ({
     ...day,
     isSelectedByCurrentUser: selectedDates.includes(day.date)
   }));
 
-  // Переход к предыдущему месяцу
   const handlePreviousMonth = () => {
     const { year, month } = getPreviousMonth(currentYear, currentMonth);
     setCurrentYear(year);
     setCurrentMonth(month);
   };
 
-  // Переход к следующему месяцу
   const handleNextMonth = () => {
     const { year, month } = getNextMonth(currentYear, currentMonth);
     setCurrentYear(year);
     setCurrentMonth(month);
   };
 
-  // Обработчик клика по дню
-  const handleDayClick = (day: CalendarDay) => {
-    // Только дни текущего месяца можно выбирать
-    if (day.isCurrentMonth) {
-      onDateClick(day.date);
+  const handleDayCellClick = (day: CalendarDay, e: React.MouseEvent) => {
+    if (!day.isCurrentMonth) return;
+    e.stopPropagation();
+    onDateClick(day.date);
+    if (onOpenTimePicker) {
+      onOpenTimePicker(day.date);
     }
   };
 
@@ -118,45 +113,45 @@ const Calendar: React.FC<CalendarProps> = ({
             } ${
               totalParticipants > 0 && day.participants.length === totalParticipants ? 'all-voted' : ''
             }`}
-            onClick={() => handleDayClick(day)}
+            onClick={(e) => handleDayCellClick(day, e)}
           >
             {/* Номер дня */}
             <span className="day-number">{day.dayNumber}</span>
-            
+
             {/* Участники, выбравшие этот день */}
             {day.participants.length > 0 && (
-              <div className="day-participants-area">
-                <div className="participants-avatars">
-                  {day.participants.map((participant, idx) => {
-                    const count = day.participants.length;
-                    const fraction = count === 1 ? 0 : idx / (count - 1);
-                    return (
-                      <div
-                        key={idx}
-                        className="avatar-position"
-                        style={{
-                          left: count === 1 ? '0' : `calc(${fraction * 100}% - var(--avatar-size) * ${fraction})`,
-                          zIndex: idx,
-                        }}
-                      >
-                        <UserAvatar
-                          name={participant}
-                          size="tiny"
-                          className="participant-badge"
-                          showTooltip={true}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-                {totalParticipants > 0 && (
-                  <div className="day-vote-count">
-                    {day.participants.length}/{totalParticipants}
+                <div className="day-participants-area">
+                  <div className="participants-avatars">
+                    {day.participants.map((participant, idx) => {
+                      const count = day.participants.length;
+                      const fraction = count === 1 ? 0 : idx / (count - 1);
+                      return (
+                        <div
+                          key={idx}
+                          className="avatar-position"
+                          style={{
+                            left: count === 1 ? '0' : `calc(${fraction * 100}% - var(--avatar-size) * ${fraction})`,
+                            zIndex: idx,
+                          }}
+                        >
+                          <UserAvatar
+                            name={participant}
+                            size="tiny"
+                            className="participant-badge"
+                            showTooltip={true}
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
-              </div>
-            )}
-          </div>
+                  {totalParticipants > 0 && (
+                    <div className="day-vote-count">
+                      {day.participants.length}/{totalParticipants}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
         ))}
       </div>
     </div>

@@ -13,9 +13,8 @@ export interface AddParticipantRequest {
 }
 
 export interface UpdateAvailabilityRequest {
-  date: string;      // ISO date string (YYYY-MM-DD)
-  timeFrom?: string; // HH:mm:ss format
-  timeTo?: string;   // HH:mm:ss format
+  date: string;        // ISO date string (YYYY-MM-DD)
+  timeSlots?: number[]; // Индексы слотов 0-47 (30 мин). [] = весь день, null = не выбрано
 }
 
 // Ответы от API (используем те же типы что и в meeting.ts)
@@ -58,4 +57,13 @@ export interface UserInfo {
 export interface ParticipationInfo {
   isParticipant: boolean;
   participant?: import('./meeting').Participant | null;
+}
+
+// ============================================
+// ОБРАТНАЯ СВЯЗЬ
+// ============================================
+
+export interface FeedbackRequest {
+  phoneNumber?: string | null;
+  message: string;
 }

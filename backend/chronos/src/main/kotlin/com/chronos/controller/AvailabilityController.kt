@@ -6,12 +6,11 @@ import com.chronos.dto.UpdateAvailabilityRequest
 import com.chronos.security.SecurityUtils
 import com.chronos.service.AvailabilityService
 import com.chronos.service.ParticipantService
-import org.openapitools.jackson.nullable.JsonNullable
+import com.chronos.util.TimeSlotsUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
-import java.time.LocalTime
 import java.util.*
 
 @RestController
@@ -33,12 +32,12 @@ class AvailabilityController(
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build()
         }
         
+        val timeSlots = updateAvailabilityRequest.timeSlots.orElse(null)
         val availability = availabilityService.addAvailability(
             participantId = participantId,
             meetingId = meetingId,
             date = updateAvailabilityRequest.date,
-            timeFrom = updateAvailabilityRequest.timeFrom?.let { LocalTime.parse(it) },
-            timeTo = updateAvailabilityRequest.timeTo?.let { LocalTime.parse(it) }
+            timeSlots = timeSlots
         ) ?: return ResponseEntity.notFound().build()
 
         val response = convertToAvailabilityResponse(availability)
@@ -51,9 +50,15 @@ class AvailabilityController(
         return ResponseEntity.ok(response)
     }
 
-    override fun getCommonAvailableDates(meetingId: UUID): ResponseEntity<List<LocalDate>> {
-        val commonDates = availabilityService.getCommonAvailableDates(meetingId)
-        return ResponseEntity.ok(commonDates)
+    override fun getCommonAvailableDates(meetingId: UUID): ResponseEntity<List<com.chronos.dto.CommonTimeSlots>> {
+        val commonTimeSlots = availabilityService.getCommonAvailableDates(meetingId)
+        val dtos = commonTimeSlots.map {
+            com.chronos.dto.CommonTimeSlots()
+                .date(it.date)
+                .startTime(it.startTime.toString())
+                .endTime(it.endTime.toString())
+        }
+        return ResponseEntity.ok(dtos)
     }
 
     /**
@@ -87,8 +92,7 @@ class AvailabilityController(
             .participantId(availability.participantId)
             .meetingId(availability.meetingId)
             .date(availability.date)
-            .timeFrom(availability.timeFrom?.toString())
-            .timeTo(availability.timeTo?.toString())
+            .timeSlots(TimeSlotsUtils.bitSetToList(availability.timeSlots))
             .createdAt(availability.createdAt)
     }
 }

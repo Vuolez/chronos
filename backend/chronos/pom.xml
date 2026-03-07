@@ -234,7 +234,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
+            <!-- compile scope needed for PGobject in TimeSlotsBitConverter -->
         </dependency>
 
         <!-- Flyway -->

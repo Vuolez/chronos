@@ -130,6 +130,9 @@ const InvitePage: React.FC = () => {
             <h3 className="invite-card-title">{meetingData.meeting.title}</h3>
             <span className="invite-status">Планирование</span>
           </div>
+          {meetingData.meeting.description && (
+            <p className="invite-card-description">{meetingData.meeting.description}</p>
+          )}
           
           {meetingData.meeting.createdBy && (
             <div className="invite-card-meta">
